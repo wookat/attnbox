@@ -2,14 +2,15 @@ import { readdirSync, readFileSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus } from "@attnbox/core";
+import { defaultHooksDir, readClaudeHookState } from "./claudeHooks.js";
 
 /**
  * Read-only collector for Claude Code sessions.
  *
  * Claude Code writes one JSONL transcript per session under
  * `~/.claude/projects/<path-slug>/<sessionId>.jsonl`. The status is derived
- * purely from the transcript tail (heuristic; the hook-based authoritative
- * mode is a later milestone):
+ * from the transcript tail (heuristic), unless a fresher hook-recorded state
+ * exists (authoritative mode — see claudeHooks.ts). Transcript heuristics:
  *   - last entry is an assistant message containing an unresolved `tool_use`
  *     -> waiting (approve)
  *   - last entry is a user/attachment entry -> working
@@ -18,7 +19,10 @@ import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus
 export class ClaudeCollector implements Collector {
   readonly name = "claude-code";
 
-  constructor(private readonly projectsDir: string = join(homedir(), ".claude", "projects")) {}
+  constructor(
+    private readonly projectsDir: string = join(homedir(), ".claude", "projects"),
+    private readonly hooksDir: string = defaultHooksDir()
+  ) {}
 
   async collect(): Promise<AttentionItem[]> {
     const items: AttentionItem[] = [];
@@ -67,7 +71,22 @@ export class ClaudeCollector implements Collector {
       ...(lastActivityAt ? { lastActivityAt } : {})
     };
     if (status === "waiting") item.attention = "approve";
-    return item;
+    return this.applyHookState(item, sessionId);
+  }
+
+  private applyHookState(item: AttentionItem, sessionId: string): AttentionItem {
+    const hook = readClaudeHookState(sessionId, this.hooksDir);
+    if (!hook) return item;
+    if (item.lastActivityAt && hook.updatedAt < item.lastActivityAt) return item;
+    const next: AttentionItem = {
+      ...item,
+      status: hook.status,
+      confidence: "authoritative",
+      lastActivityAt: hook.updatedAt
+    };
+    delete next.attention;
+    if (hook.attention) next.attention = hook.attention;
+    return next;
   }
 }
 

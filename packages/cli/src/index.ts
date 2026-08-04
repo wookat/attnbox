@@ -2,7 +2,7 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { defaultCollectors } from "@attnbox/collectors";
+import { claudeHooksSettingsSnippet, defaultCollectors, recordClaudeHookEvent } from "@attnbox/collectors";
 import { createDaemon, listen } from "@attnbox/daemon";
 import { sortItems, summarize } from "@attnbox/core";
 import { formatList } from "./format.js";
@@ -12,6 +12,9 @@ const HELP = `attnbox — unified attention inbox for your AI coding agents
 Usage:
   attnbox            Start the daemon and web inbox (http://127.0.0.1:4820)
   attnbox ls         One-shot: list sessions and who is waiting on you
+  attnbox hooks      Print the ~/.claude/settings.json snippet enabling
+                     authoritative status via Claude Code hooks
+  attnbox hook claude   (used by Claude hooks) record a hook event from stdin
   attnbox --help     Show this help
 
 Options:
@@ -38,6 +41,21 @@ async function main(): Promise<void> {
     return;
   }
 
+  if (args[0] === "hooks") {
+    console.log(claudeHooksSettingsSnippet());
+    return;
+  }
+
+  if (args[0] === "hook" && args[1] === "claude") {
+    const raw = await readStdin();
+    try {
+      recordClaudeHookEvent(JSON.parse(raw) as Parameters<typeof recordClaudeHookEvent>[0]);
+    } catch {
+      // never fail the hook — Claude would surface the error to the user
+    }
+    return;
+  }
+
   const collectors = defaultCollectors();
 
   if (args[0] === "ls") {
@@ -57,6 +75,12 @@ async function main(): Promise<void> {
   const boundPort = await listen(daemon, port);
   console.log(`attnbox inbox running at http://127.0.0.1:${boundPort}`);
   if (!dist) console.log("(web UI not built — JSON API only at /api/items)");
+}
+
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString("utf8");
 }
 
 main().catch((err: unknown) => {
