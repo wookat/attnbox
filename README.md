@@ -2,6 +2,8 @@
 
 **Unified attention inbox for your AI coding agents.** Whether an agent runs in your terminal (Claude Code, Codex CLI) or in the cloud (Devin, and more coming), attnbox shows one inbox of *who is waiting on you and what for* — approve, answer, review — on desktop and phone.
 
+Website & docs: **https://attnbox.zalize.com**
+
 - **Zero-intrusion**: local agents are discovered by *reading* their existing session logs (`~/.claude`, `~/.codex`). No wrappers, no hooks required, no tmux required.
 - **Cloud-aware**: cloud agents are polled via their public APIs (Devin today, plus a GitHub review-requested fallback; native Cursor Cloud Agents and GitHub Copilot coding agent support planned — see [docs/LIMITS.md](docs/LIMITS.md)).
 - **Privacy-first**: everything stays on your machine. The daemon binds to `127.0.0.1`; cloud API keys are read from your environment and only ever sent to their own vendor.
