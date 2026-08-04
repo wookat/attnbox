@@ -2,7 +2,13 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { claudeHooksSettingsSnippet, defaultCollectors, recordClaudeHookEvent } from "attnbox-collectors";
+import {
+  claudeHooksSettingsSnippet,
+  codexNotifySettingsSnippet,
+  defaultCollectors,
+  recordClaudeHookEvent,
+  recordCodexNotifyEvent
+} from "attnbox-collectors";
 import { createDaemon, listen } from "attnbox-daemon";
 import { sortItems, summarize } from "attnbox-core";
 import { formatList } from "./format.js";
@@ -12,9 +18,10 @@ const HELP = `attnbox — unified attention inbox for your AI coding agents
 Usage:
   attnbox            Start the daemon and web inbox (http://127.0.0.1:4820)
   attnbox ls         One-shot: list sessions and who is waiting on you
-  attnbox hooks      Print the ~/.claude/settings.json snippet enabling
-                     authoritative status via Claude Code hooks
+  attnbox hooks      Print the config snippets enabling authoritative status
+                     via Claude Code hooks and the Codex notify hook
   attnbox hook claude   (used by Claude hooks) record a hook event from stdin
+  attnbox hook codex    (used by Codex notify) record a turn-complete event
   attnbox --help     Show this help
 
 Options:
@@ -42,7 +49,10 @@ async function main(): Promise<void> {
   }
 
   if (args[0] === "hooks") {
+    console.log("# merge into ~/.claude/settings.json:");
     console.log(claudeHooksSettingsSnippet());
+    console.log("\n# add to ~/.codex/config.toml:");
+    console.log(codexNotifySettingsSnippet());
     return;
   }
 
@@ -52,6 +62,17 @@ async function main(): Promise<void> {
       recordClaudeHookEvent(JSON.parse(raw) as Parameters<typeof recordClaudeHookEvent>[0]);
     } catch {
       // never fail the hook — Claude would surface the error to the user
+    }
+    return;
+  }
+
+  if (args[0] === "hook" && args[1] === "codex") {
+    // Codex passes the JSON payload as the final argv argument.
+    const raw = args[2] ?? (await readStdin());
+    try {
+      recordCodexNotifyEvent(JSON.parse(raw) as Parameters<typeof recordCodexNotifyEvent>[0]);
+    } catch {
+      // never fail the hook
     }
     return;
   }

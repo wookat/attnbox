@@ -14,17 +14,9 @@ npx attnbox        # start the daemon + web inbox at http://127.0.0.1:4820
 npx attnbox ls     # one-shot list in your terminal
 ```
 
-> npm publish is pending; until then, run from source:
->
-> ```bash
-> git clone https://github.com/wookat/attnbox.git && cd attnbox
-> pnpm install && pnpm build
-> node packages/cli/dist/index.js        # or: node packages/cli/dist/index.js ls
-> ```
-
 Enable cloud collectors by exporting keys, e.g. `DEVIN_API_KEY=... npx attnbox`. Set `GITHUB_TOKEN` (or `ATTNBOX_GITHUB_TOKEN`) to include open PRs where your review is requested.
 
-Optional: `npx attnbox hooks` prints a `~/.claude/settings.json` snippet that upgrades Claude Code status from heuristic to authoritative via hooks.
+Optional: `npx attnbox hooks` prints config snippets that upgrade Claude Code (via `~/.claude/settings.json` hooks) and Codex CLI (via the `notify` hook in `~/.codex/config.toml`) from heuristic to authoritative status.
 
 ## Status model
 
