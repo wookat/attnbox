@@ -15,7 +15,7 @@ export { GithubReviewCollector } from "./github.js";
 
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { Collector } from "@attnbox/core";
+import type { Collector } from "attnbox-core";
 import { ClaudeCollector } from "./claude.js";
 import { CodexCollector } from "./codex.js";
 import { DevinCollector } from "./devin.js";

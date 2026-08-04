@@ -8,7 +8,7 @@ attnbox derives "who is waiting on you" from different signals per source. Some 
 | Codex CLI | `~/.codex/sessions/**/rollout-*.jsonl` (read-only) | `event_msg` lifecycle + unresolved approval requests | **heuristic** | Log format is vendor-internal and may drift between Codex versions. |
 | Devin | `GET api.devin.ai/v1/sessions` | `status_enum === "blocked"` | **authoritative** | Requires `DEVIN_API_KEY`. |
 | Gemini CLI | `~/.gemini/tmp/**` + `projects.json` (read-only) | none — no waiting marker exists in local files | **heuristic** | Reports working/idle only from file activity; never claims waiting. |
-| Cursor Cloud Agents | planned | run status via public API | — | Not yet implemented: no API key available to us for verification. Interface reserved in `@attnbox/collectors`; the review-requested fallback above applies meanwhile. |
+| Cursor Cloud Agents | planned | run status via public API | — | Not yet implemented: no API key available to us for verification. Interface reserved in `attnbox-collectors`; the review-requested fallback above applies meanwhile. |
 | GitHub review-requested (fallback) | `GET api.github.com/search/issues` `review-requested:@me` | open PR awaiting your review → waiting/review | **authoritative** | Requires `GITHUB_TOKEN`/`ATTNBOX_GITHUB_TOKEN`. Covers Copilot coding agent, Cursor agents and human teammates alike at the PR boundary. |
 | GitHub Copilot coding agent (native) | planned | task `state === "waiting_for_user"` | — | Requires Copilot Business/Enterprise, which we do not have; the review-requested fallback above applies meanwhile. |
 

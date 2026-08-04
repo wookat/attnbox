@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
-import { capStaleWorking, WORKING_STALE_MS, type AttentionItem, type Collector } from "@attnbox/core";
+import { capStaleWorking, WORKING_STALE_MS, type AttentionItem, type Collector } from "attnbox-core";
 
 /**
  * Read-only collector for Gemini CLI.

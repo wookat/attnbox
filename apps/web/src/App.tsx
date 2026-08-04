@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { AttentionItem, InboxSummary } from "@attnbox/core";
+import type { AttentionItem, InboxSummary } from "attnbox-core";
 
 interface Payload {
   items: AttentionItem[];

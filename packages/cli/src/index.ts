@@ -2,9 +2,9 @@
 import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { claudeHooksSettingsSnippet, defaultCollectors, recordClaudeHookEvent } from "@attnbox/collectors";
-import { createDaemon, listen } from "@attnbox/daemon";
-import { sortItems, summarize } from "@attnbox/core";
+import { claudeHooksSettingsSnippet, defaultCollectors, recordClaudeHookEvent } from "attnbox-collectors";
+import { createDaemon, listen } from "attnbox-daemon";
+import { sortItems, summarize } from "attnbox-core";
 import { formatList } from "./format.js";
 
 const HELP = `attnbox — unified attention inbox for your AI coding agents

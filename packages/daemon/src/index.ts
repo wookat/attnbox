@@ -1,7 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import { existsSync, readFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
-import { sortItems, summarize, type AttentionItem, type Collector } from "@attnbox/core";
+import { sortItems, summarize, type AttentionItem, type Collector } from "attnbox-core";
 
 export interface DaemonOptions {
   collectors: Collector[];

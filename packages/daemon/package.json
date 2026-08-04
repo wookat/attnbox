@@ -1,5 +1,5 @@
 {
-  "name": "@attnbox/daemon",
+  "name": "attnbox-daemon",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,8 +18,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@attnbox/core": "workspace:*",
-    "@attnbox/collectors": "workspace:*"
+    "attnbox-core": "workspace:*",
+    "attnbox-collectors": "workspace:*"
   },
   "license": "MIT",
   "publishConfig": {

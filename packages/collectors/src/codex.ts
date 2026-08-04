@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus } from "@attnbox/core";
+import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus } from "attnbox-core";
 
 /**
  * Read-only collector for Codex CLI sessions.

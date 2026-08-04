@@ -1,4 +1,4 @@
-import type { AttentionItem, Collector } from "@attnbox/core";
+import type { AttentionItem, Collector } from "attnbox-core";
 
 /**
  * Fallback collector for cloud coding agents without an accessible API

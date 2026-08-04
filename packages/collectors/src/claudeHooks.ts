@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { AttentionKind, SessionStatus } from "@attnbox/core";
+import type { AttentionKind, SessionStatus } from "attnbox-core";
 
 /**
  * Authoritative mode for Claude Code: instead of guessing from the
