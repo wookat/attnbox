@@ -1,0 +1,10 @@
+:root {
+  --sl-color-accent-low: #3a2705;
+  --sl-color-accent: #d97706;
+  --sl-color-accent-high: #fbbf24;
+}
+
+.hero img {
+  border-radius: 1rem;
+  box-shadow: 0 20px 60px rgb(0 0 0 / 0.45);
+}
