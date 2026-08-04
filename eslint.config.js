@@ -1,8 +1,9 @@
 import js from "@eslint/js";
+import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["**/dist/**", "**/coverage/**", "**/node_modules/**", "apps/web/dist/**"] },
+  { ignores: ["**/dist/**", "**/coverage/**", "**/node_modules/**", "apps/web/dist/**", "packages/cli/web-dist/**"] },
   js.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -13,7 +14,12 @@ export default tseslint.config(
     }
   },
   {
-    files: ["packages/cli/src/**"],
+    files: ["packages/cli/src/**", "packages/cli/scripts/**"],
+    languageOptions: { globals: globals.node },
     rules: { "no-console": "off" }
+  },
+  {
+    files: ["apps/web/public/sw.js"],
+    languageOptions: { globals: globals.serviceworker }
   }
 );

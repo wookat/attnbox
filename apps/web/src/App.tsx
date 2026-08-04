@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AttentionItem, InboxSummary } from "@attnbox/core";
 
 interface Payload {
@@ -53,10 +53,45 @@ function matches(item: AttentionItem, filter: Filter): boolean {
   return item.status === filter;
 }
 
+function notificationsSupported(): boolean {
+  return typeof Notification !== "undefined";
+}
+
 export default function App() {
   const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
   const [connected, setConnected] = useState(false);
   const [filter, setFilter] = useState<Filter>("all");
+  const [notify, setNotify] = useState(
+    () => notificationsSupported() && Notification.permission === "granted" && localStorage.getItem("attnbox:notify") !== "off"
+  );
+  const seenWaiting = useRef<Set<string> | null>(null);
+
+  useEffect(() => {
+    const waitingIds = new Set(data.items.filter((i) => i.status === "waiting").map((i) => i.id));
+    const prev = seenWaiting.current;
+    seenWaiting.current = waitingIds;
+    if (!prev || !notify || Notification.permission !== "granted") return;
+    for (const item of data.items) {
+      if (item.status !== "waiting" || prev.has(item.id)) continue;
+      const label = item.attention ? ATTENTION_LABEL[item.attention] : "needs you";
+      const n = new Notification(`${item.agent}: ${label}`, { body: item.title, icon: "/icon-192.png", tag: item.id });
+      if (item.url) n.onclick = () => window.open(item.url, "_blank");
+    }
+  }, [data.items, notify]);
+
+  async function toggleNotify(): Promise<void> {
+    if (!notificationsSupported()) return;
+    if (notify) {
+      localStorage.setItem("attnbox:notify", "off");
+      setNotify(false);
+      return;
+    }
+    const permission = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+    if (permission === "granted") {
+      localStorage.setItem("attnbox:notify", "on");
+      setNotify(true);
+    }
+  }
 
   useEffect(() => {
     const source = new EventSource("/api/events");
@@ -83,14 +118,30 @@ export default function App() {
               <p className="text-[11px] leading-tight text-zinc-500">agent attention inbox</p>
             </div>
           </div>
-          <span
-            className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
-              connected ? "border-emerald-800 text-emerald-300" : "border-zinc-700 text-zinc-500"
-            }`}
-          >
-            <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-zinc-600"}`} />
-            {connected ? "live" : "offline"}
-          </span>
+          <div className="flex items-center gap-2">
+            {notificationsSupported() && (
+              <button
+                onClick={() => void toggleNotify()}
+                title={notify ? "Notifications on — click to mute" : "Notify me when an agent needs me"}
+                aria-pressed={notify}
+                className={`grid size-8 place-items-center rounded-full border text-sm transition-colors ${
+                  notify
+                    ? "border-amber-700 bg-amber-500/10 text-amber-300"
+                    : "border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                }`}
+              >
+                {notify ? "🔔" : "🔕"}
+              </button>
+            )}
+            <span
+              className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
+                connected ? "border-emerald-800 text-emerald-300" : "border-zinc-700 text-zinc-500"
+              }`}
+            >
+              <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-zinc-600"}`} />
+              {connected ? "live" : "offline"}
+            </span>
+          </div>
         </div>
       </header>
 

@@ -10,13 +10,19 @@
   "types": "./dist/index.d.ts",
   "files": ["dist", "web-dist"],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/copy-web.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@attnbox/core": "workspace:*",
     "@attnbox/collectors": "workspace:*",
     "@attnbox/daemon": "workspace:*"
+  },
+  "devDependencies": {
+    "@attnbox/web": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "license": "MIT",
   "repository": {

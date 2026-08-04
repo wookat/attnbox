@@ -3,9 +3,9 @@
 **Unified attention inbox for your AI coding agents.** Whether an agent runs in your terminal (Claude Code, Codex CLI) or in the cloud (Devin, and more coming), attnbox shows one inbox of *who is waiting on you and what for* — approve, answer, review — on desktop and phone.
 
 - **Zero-intrusion**: local agents are discovered by *reading* their existing session logs (`~/.claude`, `~/.codex`). No wrappers, no hooks required, no tmux required.
-- **Cloud-aware**: cloud agents are polled via their public APIs (Devin today; Cursor Cloud Agents and GitHub Copilot coding agent planned — see [docs/LIMITS.md](docs/LIMITS.md)).
+- **Cloud-aware**: cloud agents are polled via their public APIs (Devin today, plus a GitHub review-requested fallback; native Cursor Cloud Agents and GitHub Copilot coding agent support planned — see [docs/LIMITS.md](docs/LIMITS.md)).
 - **Privacy-first**: everything stays on your machine. The daemon binds to `127.0.0.1`; cloud API keys are read from your environment and only ever sent to their own vendor.
-- **Mobile-first web UI**: a responsive inbox (Tailwind), streamed live over SSE.
+- **Mobile-first web UI**: a responsive inbox (Tailwind), streamed live over SSE, installable as a PWA with optional browser notifications when an agent starts waiting on you.
 
 ## Quick start
 
@@ -14,7 +14,17 @@ npx attnbox        # start the daemon + web inbox at http://127.0.0.1:4820
 npx attnbox ls     # one-shot list in your terminal
 ```
 
-Enable cloud collectors by exporting keys, e.g. `DEVIN_API_KEY=... npx attnbox`.
+> npm publish is pending; until then, run from source:
+>
+> ```bash
+> git clone https://github.com/wookat/attnbox.git && cd attnbox
+> pnpm install && pnpm build
+> node packages/cli/dist/index.js        # or: node packages/cli/dist/index.js ls
+> ```
+
+Enable cloud collectors by exporting keys, e.g. `DEVIN_API_KEY=... npx attnbox`. Set `GITHUB_TOKEN` (or `ATTNBOX_GITHUB_TOKEN`) to include open PRs where your review is requested.
+
+Optional: `npx attnbox hooks` prints a `~/.claude/settings.json` snippet that upgrades Claude Code status from heuristic to authoritative via hooks.
 
 ## Status model
 

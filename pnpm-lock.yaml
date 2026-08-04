@@ -23,6 +23,9 @@ importers:
       eslint:
         specifier: ^9.32.0
         version: 9.39.5(jiti@2.7.0)
+      globals:
+        specifier: ^17.9.0
+        version: 17.9.0
       typescript:
         specifier: ^5.8.3
         version: 5.9.3
@@ -75,6 +78,10 @@ importers:
       '@attnbox/daemon':
         specifier: workspace:*
         version: link:../daemon
+    devDependencies:
+      '@attnbox/web':
+        specifier: workspace:*
+        version: link:../../apps/web
 
   packages/collectors:
     dependencies:
@@ -1237,6 +1244,10 @@ packages:
 
   globals@14.0.0:
     resolution: {integrity: sha512-oahGvuMGQlPw/ivIYBjVSrWAfWLBeku5tpPE2fOPLi+WHffIWbuh2tCjhyQhTBPMf5E9jDEH4FOmTYgYwbKwtQ==}
+    engines: {node: '>=18'}
+
+  globals@17.9.0:
+    resolution: {integrity: sha512-m/MvAW61QVU5VDNF1Vj8axt016h8w7L5TU1e9zlab7XIttAT2YAlCwl75K1fOqvMM9apmD7lbCIRhpfkhmxhCg==}
     engines: {node: '>=18'}
 
   globby@11.1.0:
@@ -3112,6 +3123,8 @@ snapshots:
       path-scurry: 1.11.1
 
   globals@14.0.0: {}
+
+  globals@17.9.0: {}
 
   globby@11.1.0:
     dependencies:
