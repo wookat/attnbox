@@ -45,9 +45,6 @@ importers:
         specifier: ^19.1.0
         version: 19.2.8(react@19.2.8)
     devDependencies:
-      '@attnbox/core':
-        specifier: workspace:*
-        version: link:../../packages/core
       '@tailwindcss/vite':
         specifier: ^4.1.11
         version: 4.3.3(vite@7.3.6(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0))
@@ -60,6 +57,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.6.0
         version: 4.7.0(vite@7.3.6(@types/node@22.20.1)(jiti@2.7.0)(lightningcss@1.32.0))
+      attnbox-core:
+        specifier: workspace:*
+        version: link:../../packages/core
       tailwindcss:
         specifier: ^4.1.11
         version: 4.3.3
@@ -69,13 +69,13 @@ importers:
 
   packages/cli:
     dependencies:
-      '@attnbox/collectors':
+      attnbox-collectors:
         specifier: workspace:*
         version: link:../collectors
-      '@attnbox/core':
+      attnbox-core:
         specifier: workspace:*
         version: link:../core
-      '@attnbox/daemon':
+      attnbox-daemon:
         specifier: workspace:*
         version: link:../daemon
     devDependencies:
@@ -85,7 +85,7 @@ importers:
 
   packages/collectors:
     dependencies:
-      '@attnbox/core':
+      attnbox-core:
         specifier: workspace:*
         version: link:../core
 
@@ -93,10 +93,10 @@ importers:
 
   packages/daemon:
     dependencies:
-      '@attnbox/collectors':
+      attnbox-collectors:
         specifier: workspace:*
         version: link:../collectors
-      '@attnbox/core':
+      attnbox-core:
         specifier: workspace:*
         version: link:../core
 

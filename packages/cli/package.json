@@ -14,9 +14,9 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@attnbox/core": "workspace:*",
-    "@attnbox/collectors": "workspace:*",
-    "@attnbox/daemon": "workspace:*"
+    "attnbox-core": "workspace:*",
+    "attnbox-collectors": "workspace:*",
+    "attnbox-daemon": "workspace:*"
   },
   "devDependencies": {
     "@attnbox/web": "workspace:*"

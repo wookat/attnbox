@@ -1,4 +1,4 @@
-import type { AttentionItem } from "@attnbox/core";
+import type { AttentionItem } from "attnbox-core";
 
 const STATUS_ICON: Record<AttentionItem["status"], string> = {
   waiting: "●",

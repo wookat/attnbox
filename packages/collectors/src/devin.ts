@@ -1,4 +1,4 @@
-import type { AttentionItem, Collector, SessionStatus } from "@attnbox/core";
+import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
 
 /**
  * Cloud collector for Devin sessions via the public API

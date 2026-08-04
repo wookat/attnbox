@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { AttentionItem } from "@attnbox/core";
+import type { AttentionItem } from "attnbox-core";
 import { formatItem, formatList } from "./format.js";
 
 const item: AttentionItem = {

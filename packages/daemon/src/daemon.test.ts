@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import type { AttentionItem, Collector } from "@attnbox/core";
+import type { AttentionItem, Collector } from "attnbox-core";
 import { createDaemon, listen, type Daemon } from "./index.js";
 
 function stubCollector(items: AttentionItem[]): Collector {

@@ -1,5 +1,5 @@
 {
-  "name": "@attnbox/collectors",
+  "name": "attnbox-collectors",
   "version": "0.0.1",
   "type": "module",
   "main": "./dist/index.js",
@@ -18,7 +18,7 @@
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "@attnbox/core": "workspace:*"
+    "attnbox-core": "workspace:*"
   },
   "license": "MIT",
   "publishConfig": {
