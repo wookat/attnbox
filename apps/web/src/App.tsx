@@ -60,7 +60,10 @@ function notificationsSupported(): boolean {
 export default function App() {
   const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
   const [connected, setConnected] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState<Filter>(() => {
+    const saved = localStorage.getItem("attnbox:filter");
+    return FILTERS.some((f) => f.key === saved) ? (saved as Filter) : "all";
+  });
   const [notify, setNotify] = useState(
     () => notificationsSupported() && Notification.permission === "granted" && localStorage.getItem("attnbox:notify") !== "off"
   );
@@ -92,6 +95,14 @@ export default function App() {
       setNotify(true);
     }
   }
+
+  useEffect(() => {
+    localStorage.setItem("attnbox:filter", filter);
+  }, [filter]);
+
+  useEffect(() => {
+    document.title = data.summary.waiting > 0 ? `(${data.summary.waiting}) attnbox` : "attnbox — agent attention inbox";
+  }, [data.summary.waiting]);
 
   useEffect(() => {
     const source = new EventSource("/api/events");

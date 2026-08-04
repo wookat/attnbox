@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus } from "attnbox-core";
+import { defaultCodexHooksDir, readCodexNotifyState } from "./codexNotify.js";
 
 /**
  * Read-only collector for Codex CLI sessions.
@@ -12,19 +13,40 @@ import { capStaleWorking, type AttentionItem, type Collector, type SessionStatus
  *   - last lifecycle event is `task_started` -> working
  *   - an unresolved exec/patch approval request -> waiting (approve)
  *   - `task_complete` -> idle
+ *
+ * When the Codex `notify` hook is configured, its persisted turn-complete
+ * state supersedes the rollout heuristic if fresher.
  */
 export class CodexCollector implements Collector {
   readonly name = "codex";
 
-  constructor(private readonly sessionsDir: string = join(homedir(), ".codex", "sessions")) {}
+  constructor(
+    private readonly sessionsDir: string = join(homedir(), ".codex", "sessions"),
+    private readonly hooksDir: string = defaultCodexHooksDir()
+  ) {}
 
   async collect(): Promise<AttentionItem[]> {
     const items: AttentionItem[] = [];
     for (const path of walkJsonl(this.sessionsDir, 4)) {
       const item = readRollout(path);
-      if (item) items.push(capStaleWorking(item));
+      if (item) items.push(capStaleWorking(this.applyNotifyState(item)));
     }
     return items;
+  }
+
+  private applyNotifyState(item: AttentionItem): AttentionItem {
+    const threadId = item.id.slice("codex:".length);
+    const hook = readCodexNotifyState(threadId, this.hooksDir);
+    if (!hook) return item;
+    if (item.lastActivityAt && hook.updatedAt < item.lastActivityAt) return item;
+    const next: AttentionItem = {
+      ...item,
+      status: hook.status,
+      confidence: "authoritative",
+      lastActivityAt: hook.updatedAt
+    };
+    delete next.attention;
+    return next;
   }
 }
 
