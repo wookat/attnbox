@@ -14,6 +14,28 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const { id, url } = event.notification.data ?? {};
+  if (event.action === "ack" && id) {
+    event.waitUntil(
+      fetch("/api/ack", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id, at: new Date().toISOString() })
+      }).catch(() => undefined)
+    );
+    return;
+  }
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {
+      if (url) return self.clients.openWindow(url);
+      const open = clients.find((c) => "focus" in c);
+      return open ? open.focus() : self.clients.openWindow("/");
+    })
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
   if (event.request.method !== "GET" || url.pathname.startsWith("/api/")) return;
