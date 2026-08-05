@@ -99,7 +99,8 @@ export default function App() {
     for (const item of data.items) {
       if (item.status !== "waiting" || prev.has(item.id) || isAcked(item)) continue;
       const label = item.attention ? ATTENTION_LABEL[item.attention] : "needs you";
-      const n = new Notification(`${item.agent}: ${label}`, { body: item.title, icon: "/icon-192.png", tag: item.id });
+      const body = item.detail ? `${item.title}\n${item.detail}` : item.title;
+      const n = new Notification(`${item.agent}: ${label}`, { body, icon: "/icon-192.png", tag: item.id });
       if (item.url) n.onclick = () => window.open(item.url, "_blank");
     }
   }, [data.items, notify]);
