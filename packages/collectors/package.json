@@ -1,6 +1,6 @@
 {
   "name": "attnbox-collectors",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Read-only collectors for attnbox — Claude Code, Codex CLI, Gemini CLI, Devin and GitHub review requests as attention items.",
   "keywords": [
     "ai",

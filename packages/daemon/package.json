@@ -1,6 +1,6 @@
 {
   "name": "attnbox-daemon",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Localhost-only daemon serving the attnbox web inbox, SSE updates, triage state and act-in-place replies.",
   "keywords": [
     "ai",

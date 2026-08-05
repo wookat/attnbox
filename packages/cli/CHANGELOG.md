@@ -1,5 +1,17 @@
 # attnbox
 
+## 0.2.1
+
+### Patch Changes
+
+- 0079535: Web inbox passes axe-core (WCAG AA) clean: all secondary text lifted from zinc-500/600 to zinc-400, fixing ~220 color-contrast violations (ratios 2.5–4.1 → ≥ 8:1).
+- 5156fc8: Browser notifications now include the waiting item's question/approval preview in the body, so they're decidable from the lock screen.
+- b6d2d6a: Browser notifications gain a ✓ Done action button (service-worker notifications): ack a waiting item straight from the notification without opening the inbox. Plain clicks still open the item; browsers without SW notification actions fall back to the previous behavior.
+- 940e116: The Needs-you section gains a "✓ all done" button to ack every visible waiting item at once (respects the active search/filter; same persistence and resurface semantics as single acks).
+- Updated dependencies [7a99812]
+  - attnbox-collectors@0.2.1
+  - attnbox-daemon@0.1.2
+
 ## 0.2.0
 
 ### Minor Changes
