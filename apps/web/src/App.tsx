@@ -308,7 +308,7 @@ export default function App() {
   return (
     <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">
       <header className="sticky top-0 z-10 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
+        <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
             <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 text-sm font-bold text-zinc-950">
               @
@@ -368,7 +368,8 @@ export default function App() {
           </p>
         </section>
 
-        <div className="mb-3">
+        <div className="sticky top-14 z-10 -mx-4 mb-5 bg-zinc-950/90 px-4 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/75">
+        <div className="mb-2">
           <input
             ref={searchRef}
             type="search"
@@ -380,7 +381,7 @@ export default function App() {
           />
         </div>
 
-        <nav className="mb-5 flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+        <nav className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
           {FILTERS.map(({ key, label }) => (
             <button
               key={key}
@@ -408,6 +409,7 @@ export default function App() {
             ⊞
           </button>
         </nav>
+        </div>
 
         {waiting.length > 0 && (
           <section className="mb-6">
@@ -615,7 +617,7 @@ function ItemRow({
     >
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium">{item.title}</p>
+        <p className="line-clamp-2 text-sm font-medium sm:line-clamp-1">{item.title}</p>
         <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
           <span className={style.label}>{item.attention ? ATTENTION_LABEL[item.attention] : item.status}</span>
           <span className={`rounded-full border px-2 py-0.5 ${agentStyle}`}>{item.agent}</span>
