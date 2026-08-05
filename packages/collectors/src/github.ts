@@ -30,7 +30,12 @@ export class GithubReviewCollector implements Collector {
     } catch {
       return [];
     }
-    if (!response.ok) return [];
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.error(`attnbox: github-pr collector: HTTP ${response.status} — check ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN`);
+      }
+      return [];
+    }
     const body = (await response.json()) as { items?: SearchItem[] };
     return (body.items ?? []).map((pr) => toItem(pr));
   }

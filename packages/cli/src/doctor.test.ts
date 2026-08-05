@@ -64,6 +64,24 @@ describe("runDoctor", () => {
     expect(down.find((c) => c.name === "devin")?.level).toBe("warn");
   });
 
+  it("validates the GitHub token against the live API", async () => {
+    const home = tempHome();
+    const env = { GITHUB_TOKEN: "t" };
+    const good = await runDoctor({ home, env, fetchImpl: okFetch() });
+    expect(good.find((c) => c.name === "github-pr")).toMatchObject({ level: "ok" });
+    const bad = await runDoctor({ home, env, fetchImpl: okFetch(false, 401) });
+    expect(bad.find((c) => c.name === "github-pr")).toMatchObject({ level: "warn" });
+    expect(bad.find((c) => c.name === "github-pr")?.detail).toContain("401");
+    const down = await runDoctor({
+      home,
+      env,
+      fetchImpl: (async () => {
+        throw new Error("network");
+      }) as unknown as typeof fetch
+    });
+    expect(down.find((c) => c.name === "github-pr")?.level).toBe("warn");
+  });
+
   it("formats aligned readable output", async () => {
     const out = formatDoctor(await runDoctor({ home: tempHome(), env: {}, fetchImpl: okFetch() }));
     expect(out).toContain("– claude-code");
