@@ -4,6 +4,7 @@ import type { AttentionItem, InboxSummary } from "attnbox-core";
 interface Payload {
   items: AttentionItem[];
   summary: InboxSummary;
+  acked?: Record<string, string>;
 }
 
 type Filter = "all" | "waiting" | "working" | "done";
@@ -77,6 +78,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acked, setAcked] = useState<Record<string, string>>(() => {
     try {
+      // migration fallback: pre-daemon-persistence state lived in this browser only
       return JSON.parse(localStorage.getItem("attnbox:acked") ?? "{}") as Record<string, string>;
     } catch {
       return {};
@@ -124,6 +126,10 @@ export default function App() {
   }, [acked]);
 
   useEffect(() => {
+    if (data.acked) setAcked(data.acked);
+  }, [data.acked]);
+
+  useEffect(() => {
     localStorage.setItem("attnbox:group", grouped ? "on" : "off");
   }, [grouped]);
 
@@ -134,11 +140,19 @@ export default function App() {
   }
 
   function toggleAck(item: AttentionItem): void {
+    const at = isAcked(item) ? null : (item.lastActivityAt ?? new Date().toISOString());
     setAcked((prev) => {
       const next = { ...prev };
-      if (isAcked(item)) delete next[item.id];
-      else next[item.id] = item.lastActivityAt ?? new Date().toISOString();
+      if (at === null) delete next[item.id];
+      else next[item.id] = at;
       return next;
+    });
+    void fetch("/api/ack", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: item.id, at })
+    }).catch(() => {
+      // daemon unreachable — the optimistic local state still applies in this tab
     });
   }
 

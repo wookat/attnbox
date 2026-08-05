@@ -1,6 +1,7 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
-import { existsSync, readFileSync } from "node:fs";
-import { extname, join, normalize } from "node:path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, extname, join, normalize } from "node:path";
 import { sortItems, summarize, type AttentionItem, type Collector } from "attnbox-core";
 
 export interface ReplyResult {
@@ -17,6 +18,8 @@ export interface DaemonOptions {
   webDist?: string;
   /** Optional act-in-place handler: send a reply to the agent behind an item. */
   reply?: (itemId: string, message: string) => Promise<ReplyResult>;
+  /** File persisting handled/ack state across browsers and devices. */
+  ackFile?: string;
 }
 
 export interface Daemon {
@@ -43,6 +46,20 @@ export function createDaemon(options: DaemonOptions): Daemon {
   const intervalMs = options.intervalMs ?? 3000;
   let snapshot: AttentionItem[] = [];
   const sseClients = new Set<ServerResponse>();
+  const ackFile = options.ackFile ?? join(homedir(), ".attnbox", "acked.json");
+  const acked: Record<string, string> = readAcked(ackFile);
+
+  function setAck(id: string, at: string | null): void {
+    if (at === null) delete acked[id];
+    else acked[id] = at;
+    try {
+      mkdirSync(dirname(ackFile), { recursive: true });
+      writeFileSync(ackFile, JSON.stringify(acked));
+    } catch {
+      // persistence is best-effort; in-memory state still serves this run
+    }
+    broadcast();
+  }
 
   async function refresh(): Promise<AttentionItem[]> {
     const results = await Promise.all(
@@ -61,8 +78,12 @@ export function createDaemon(options: DaemonOptions): Daemon {
     return snapshot;
   }
 
+  function payloadJson(): string {
+    return JSON.stringify({ items: snapshot, summary: summarize(snapshot), acked });
+  }
+
   function broadcast(): void {
-    const payload = `data: ${JSON.stringify({ items: snapshot, summary: summarize(snapshot) })}\n\n`;
+    const payload = `data: ${payloadJson()}\n\n`;
     for (const client of sseClients) client.write(payload);
   }
 
@@ -72,9 +93,13 @@ export function createDaemon(options: DaemonOptions): Daemon {
       void handleReply(req, res);
       return;
     }
+    if (url.pathname === "/api/ack" && req.method === "POST") {
+      void handleAck(req, res);
+      return;
+    }
     if (url.pathname === "/api/items") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
-      res.end(JSON.stringify({ items: snapshot, summary: summarize(snapshot) }));
+      res.end(payloadJson());
       return;
     }
     if (url.pathname === "/api/events") {
@@ -83,12 +108,34 @@ export function createDaemon(options: DaemonOptions): Daemon {
         "cache-control": "no-cache",
         connection: "keep-alive"
       });
-      res.write(`data: ${JSON.stringify({ items: snapshot, summary: summarize(snapshot) })}\n\n`);
+      res.write(`data: ${payloadJson()}\n\n`);
       sseClients.add(res);
       req.on("close", () => sseClients.delete(res));
       return;
     }
     serveStatic(url.pathname, res, options.webDist);
+  }
+
+  async function handleAck(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const json = (code: number, body: unknown): void => {
+      res.writeHead(code, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(body));
+    };
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) chunks.push(chunk as Buffer);
+    let body: { id?: unknown; at?: unknown };
+    try {
+      body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as typeof body;
+    } catch {
+      json(400, { ok: false, error: "invalid JSON" });
+      return;
+    }
+    if (typeof body.id !== "string" || (typeof body.at !== "string" && body.at !== null)) {
+      json(400, { ok: false, error: "expected { id: string, at: string | null }" });
+      return;
+    }
+    setAck(body.id, body.at);
+    json(200, { ok: true, acked });
   }
 
   async function handleReply(req: IncomingMessage, res: ServerResponse): Promise<void> {
@@ -141,6 +188,18 @@ export function createDaemon(options: DaemonOptions): Daemon {
       );
     }
   };
+}
+
+function readAcked(path: string): Record<string, string> {
+  try {
+    const parsed = JSON.parse(readFileSync(path, "utf8")) as unknown;
+    if (typeof parsed !== "object" || parsed === null) return {};
+    const out: Record<string, string> = {};
+    for (const [k, v] of Object.entries(parsed)) if (typeof v === "string") out[k] = v;
+    return out;
+  } catch {
+    return {};
+  }
 }
 
 function serveStatic(pathname: string, res: ServerResponse, webDist: string | undefined): void {
