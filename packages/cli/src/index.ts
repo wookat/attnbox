@@ -81,6 +81,13 @@ async function main(): Promise<void> {
     return;
   }
 
+  const known = new Set(["ls", "hooks", "hook", undefined]);
+  if (!known.has(args[0]) && !args[0]?.startsWith("--")) {
+    console.error(`attnbox: unknown command "${args[0]}" — run \`attnbox --help\``);
+    process.exitCode = 1;
+    return;
+  }
+
   const collectors = defaultCollectors();
 
   if (args[0] === "ls") {
@@ -99,10 +106,25 @@ async function main(): Promise<void> {
 
   const portIdx = args.indexOf("--port");
   const port = portIdx >= 0 ? Number(args[portIdx + 1]) : Number(process.env["ATTNBOX_PORT"] ?? 4820);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) {
+    console.error(`attnbox: invalid port "${portIdx >= 0 ? args[portIdx + 1] : process.env["ATTNBOX_PORT"]}" — expected a number between 0 and 65535`);
+    process.exitCode = 1;
+    return;
+  }
   const dist = webDist();
   const daemon = createDaemon(dist ? { collectors, webDist: dist } : { collectors });
   await daemon.ready;
-  const boundPort = await listen(daemon, port);
+  let boundPort: number;
+  try {
+    boundPort = await listen(daemon, port);
+  } catch (err) {
+    if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "EADDRINUSE") {
+      console.error(`attnbox: port ${port} is already in use — is another attnbox running? Try \`attnbox --port <n>\``);
+      process.exitCode = 1;
+      return;
+    }
+    throw err;
+  }
   console.log(`attnbox inbox running at http://127.0.0.1:${boundPort}`);
   if (!dist) console.log("(web UI not built — JSON API only at /api/items)");
 }

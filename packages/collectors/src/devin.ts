@@ -26,7 +26,12 @@ export class DevinCollector implements Collector {
     } catch {
       return [];
     }
-    if (!response.ok) return [];
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) {
+        console.error(`attnbox: devin collector: HTTP ${response.status} — check DEVIN_API_KEY`);
+      }
+      return [];
+    }
 
     const body = (await response.json()) as { sessions?: DevinSession[] };
     return (body.sessions ?? []).map((s) => toItem(s));
