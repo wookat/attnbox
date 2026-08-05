@@ -20,3 +20,23 @@ jobs:
       - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
+
+  # pnpm 11 itself needs Node >= 22.13, so install/build on 22
+  # and re-run the suite + CLI smoke on Node 20 directly.
+  node20:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: node node_modules/vitest/vitest.mjs run
+      - run: node packages/cli/dist/index.js --help
+      - run: node packages/cli/dist/index.js ls --json > /dev/null
