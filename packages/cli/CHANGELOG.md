@@ -1,5 +1,11 @@
 # attnbox
 
+## 0.3.1
+
+### Patch Changes
+
+- eb2c7c1: Mobile inbox ergonomics: the search box and filter tabs now stay pinned below the header while scrolling long session lists, and titles wrap to two lines on phones instead of truncating to one.
+
 ## 0.3.0
 
 ### Minor Changes
