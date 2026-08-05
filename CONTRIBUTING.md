@@ -32,9 +32,12 @@ node packages/cli/dist/index.js   # run the CLI/daemon locally
 
 ## Releasing
 
-- `pnpm changeset version` in a PR, then publish each package with **`npm publish`**
-  (per package, from its directory) — `pnpm -r publish` does not upload the README
-  to the registry packument, leaving the npm package pages blank.
+- `pnpm changeset version` in a PR, then publish each package via
+  **`pnpm pack` + `npm publish <tarball>`** (per package): `pnpm pack` rewrites
+  `workspace:*` dependency ranges to real versions (a plain `npm publish` would
+  ship uninstallable `workspace:*` ranges), and publishing the tarball with the
+  npm CLI uploads the README to the registry packument (`pnpm -r publish` does
+  not, leaving the npm package pages blank).
 
 ## Reporting bugs / proposing features
 
