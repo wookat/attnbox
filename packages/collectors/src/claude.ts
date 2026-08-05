@@ -71,7 +71,12 @@ export class ClaudeCollector implements Collector {
       ...(lastActivityAt ? { lastActivityAt } : {})
     };
     if (status === "waiting") item.attention = "approve";
-    return this.applyHookState(item, sessionId);
+    const resolved = this.applyHookState(item, sessionId);
+    if (resolved.status === "waiting") {
+      const detail = lastAssistantText(meaningful);
+      if (detail !== undefined) resolved.detail = detail;
+    }
+    return resolved;
   }
 
   private applyHookState(item: AttentionItem, sessionId: string): AttentionItem {
@@ -136,6 +141,27 @@ function firstUserPrompt(entries: readonly TranscriptEntry[]): string | undefine
     }
   }
   return undefined;
+}
+
+function lastAssistantText(entries: readonly TranscriptEntry[]): string | undefined {
+  for (let i = entries.length - 1; i >= 0; i--) {
+    const entry = entries[i];
+    if (entry?.type !== "assistant") continue;
+    const content = entry.message?.content;
+    if (typeof content === "string" && content.trim() !== "") return truncate(collapse(content), 280);
+    if (Array.isArray(content)) {
+      for (const block of content) {
+        if (isRecord(block) && block["type"] === "text" && typeof block["text"] === "string" && block["text"].trim() !== "") {
+          return truncate(collapse(block["text"]), 280);
+        }
+      }
+    }
+  }
+  return undefined;
+}
+
+function collapse(text: string): string {
+  return text.replace(/\s+/g, " ").trim();
 }
 
 function lastTimestamp(entries: readonly TranscriptEntry[]): string | undefined {
