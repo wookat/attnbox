@@ -175,6 +175,12 @@ export default function App() {
     });
   }
 
+  function ackAll(items: AttentionItem[]): void {
+    for (const item of items) {
+      if (!isAcked(item)) toggleAck(item);
+    }
+  }
+
   const unackedWaiting = data.items.filter((i) => i.status === "waiting" && !isAcked(i)).length;
 
   useEffect(() => {
@@ -389,7 +395,19 @@ export default function App() {
 
         {waiting.length > 0 && (
           <section className="mb-6">
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
+            <div className="mb-2 flex items-center justify-between">
+              <h2 className="text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
+              {waiting.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => ackAll(waiting)}
+                  className="rounded-md px-2 py-0.5 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                  title="Mark all visible waiting items handled"
+                >
+                  ✓ all done
+                </button>
+              )}
+            </div>
             <ul className="space-y-2">
               {waiting.map((item) => (
                 <ItemRow key={item.id} item={item} highlight {...rowProps(item)} />
