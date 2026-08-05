@@ -1,5 +1,18 @@
 # attnbox-collectors
 
+## 0.2.0
+
+### Minor Changes
+
+- 5d11c8c: Waiting items now show what the agent is actually asking: Devin blocked sessions carry a `detail` preview (last agent message, cached by `updated_at`) rendered in the web inbox and as an indented line in `attnbox ls`.
+
+### Patch Changes
+
+- 8a766b5: github-pr fallback: bad tokens (401/403) now warn on stderr instead of silently dropping review requests, and `attnbox doctor` live-probes the GitHub token like it does the Devin key.
+- ddb1d4d: Local waiting items now say what for: Claude Code previews the last assistant message, Codex previews the pending approval (`wants to run: <command>` / `wants to apply a patch`) — same read-only files, no new I/O.
+- Updated dependencies [5d11c8c]
+  - attnbox-core@0.2.0
+
 ## 0.1.0
 
 ### Minor Changes
