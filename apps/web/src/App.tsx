@@ -100,8 +100,25 @@ export default function App() {
       if (item.status !== "waiting" || prev.has(item.id) || isAcked(item)) continue;
       const label = item.attention ? ATTENTION_LABEL[item.attention] : "needs you";
       const body = item.detail ? `${item.title}\n${item.detail}` : item.title;
-      const n = new Notification(`${item.agent}: ${label}`, { body, icon: "/icon-192.png", tag: item.id });
-      if (item.url) n.onclick = () => window.open(item.url, "_blank");
+      const title = `${item.agent}: ${label}`;
+      const fallback = (): void => {
+        const n = new Notification(title, { body, icon: "/icon-192.png", tag: item.id });
+        if (item.url) n.onclick = () => window.open(item.url, "_blank");
+      };
+      const registration =
+        "serviceWorker" in navigator ? navigator.serviceWorker.getRegistration() : Promise.resolve(undefined);
+      void registration
+        .then((reg) => {
+          if (!reg) return fallback();
+          return reg.showNotification(title, {
+            body,
+            icon: "/icon-192.png",
+            tag: item.id,
+            data: { id: item.id, url: item.url },
+            actions: [{ action: "ack", title: "✓ Done" }]
+          } as NotificationOptions);
+        })
+        .catch(fallback);
     }
   }, [data.items, notify]);
 
