@@ -67,6 +67,7 @@ function notificationsSupported(): boolean {
 export default function App() {
   const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
   const [connected, setConnected] = useState(false);
+  const everConnected = useRef(false);
   const [filter, setFilter] = useState<Filter>(() => {
     const saved = localStorage.getItem("attnbox:filter");
     return FILTERS.some((f) => f.key === saved) ? (saved as Filter) : "all";
@@ -164,7 +165,10 @@ export default function App() {
 
   useEffect(() => {
     const source = new EventSource("/api/events");
-    source.onopen = () => setConnected(true);
+    source.onopen = () => {
+      everConnected.current = true;
+      setConnected(true);
+    };
     source.onerror = () => setConnected(false);
     source.onmessage = (e) => setData(JSON.parse(e.data as string) as Payload);
     return () => source.close();
@@ -301,6 +305,12 @@ export default function App() {
         </div>
       </header>
 
+      {!connected && everConnected.current && (
+        <div className="border-b border-amber-900/50 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-300">
+          Connection to the attnbox daemon lost — showing the last known state, reconnecting…
+        </div>
+      )}
+
       <main className="mx-auto max-w-3xl px-4 py-5 sm:py-8">
         <section className="mb-5">
           <p className="text-lg font-medium sm:text-xl">
@@ -375,17 +385,39 @@ export default function App() {
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Everything else</h2>
           )}
           {visible.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
-              <p className="text-2xl">📭</p>
-              <p className="mt-2 text-sm text-zinc-400">Nothing here</p>
-              <p className="mt-1 text-xs text-zinc-600">
-                {filter === "all"
-                  ? "Start a Claude Code / Codex / Gemini session, or configure a cloud API key."
-                  : query !== ""
-                    ? "No sessions match this search."
-                    : "No sessions match this filter."}
-              </p>
-            </div>
+            data.items.length === 0 && filter === "all" && query === "" ? (
+              <div className="rounded-2xl border border-dashed border-zinc-800 p-8">
+                <p className="text-center text-2xl">📭</p>
+                <p className="mt-2 text-center text-sm text-zinc-300">No agent sessions found yet</p>
+                <ul className="mx-auto mt-4 max-w-md space-y-2 text-xs text-zinc-400">
+                  <li>
+                    <span className="text-zinc-200">Local agents</span> — start a Claude Code, Codex CLI or Gemini
+                    CLI session; it appears here automatically.
+                  </li>
+                  <li>
+                    <span className="text-zinc-200">Cloud agents</span> — restart with{" "}
+                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">DEVIN_API_KEY=… npx attnbox</code>{" "}
+                    or <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">GITHUB_TOKEN=…</code> for PRs
+                    awaiting your review.
+                  </li>
+                  <li>
+                    <span className="text-zinc-200">Diagnose</span> — run{" "}
+                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">npx attnbox doctor</code> to see
+                    which collectors are active, and{" "}
+                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">npx attnbox hooks --install</code>{" "}
+                    for authoritative status.
+                  </li>
+                </ul>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
+                <p className="text-2xl">📭</p>
+                <p className="mt-2 text-sm text-zinc-400">Nothing here</p>
+                <p className="mt-1 text-xs text-zinc-600">
+                  {query !== "" ? "No sessions match this search." : "No sessions match this filter."}
+                </p>
+              </div>
+            )
           ) : grouped ? (
             <div className="space-y-4">
               {groups.map(([name, items]) => (
