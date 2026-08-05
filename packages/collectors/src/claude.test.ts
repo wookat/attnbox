@@ -52,6 +52,25 @@ describe("ClaudeCollector", () => {
     expect(items[0]).toMatchObject({ status: "waiting", attention: "approve" });
   });
 
+  it("previews the last assistant text on waiting items", async () => {
+    const root = fixture([
+      userEntry,
+      {
+        type: "assistant",
+        timestamp: now,
+        message: {
+          role: "assistant",
+          content: [
+            { type: "text", text: "I need to run  the\nmigration." },
+            { type: "tool_use", name: "Bash" }
+          ]
+        }
+      }
+    ]);
+    const items = await new ClaudeCollector(root).collect();
+    expect(items[0]).toMatchObject({ status: "waiting", detail: "I need to run the migration." });
+  });
+
   it("derives idle when the assistant finished with text", async () => {
     const root = fixture([
       userEntry,

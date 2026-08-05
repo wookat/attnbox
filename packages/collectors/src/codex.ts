@@ -71,6 +71,7 @@ export function readRollout(path: string): AttentionItem | null {
   let lastTs: string | undefined;
   let status: SessionStatus = "unknown";
   let pendingApproval = false;
+  let approvalDetail: string | undefined;
 
   for (const line of lines) {
     let entry: RolloutLine;
@@ -95,6 +96,7 @@ export function readRollout(path: string): AttentionItem | null {
         pendingApproval = false;
       } else if (kind === "exec_approval_request" || kind === "apply_patch_approval_request") {
         pendingApproval = true;
+        approvalDetail = describeApproval(kind, payload);
       } else if (kind === "user_message" && prompt === undefined && typeof payload["message"] === "string") {
         prompt = truncate(payload["message"]);
       }
@@ -114,8 +116,22 @@ export function readRollout(path: string): AttentionItem | null {
     ...(cwd ? { project: cwd } : {}),
     ...(lastTs ? { lastActivityAt: lastTs } : {})
   };
-  if (status === "waiting") item.attention = "approve";
+  if (status === "waiting") {
+    item.attention = "approve";
+    if (approvalDetail !== undefined) item.detail = approvalDetail;
+  }
   return item;
+}
+
+function describeApproval(kind: string, payload: Record<string, unknown>): string {
+  if (kind === "exec_approval_request") {
+    const command = payload["command"];
+    if (Array.isArray(command) && command.every((c) => typeof c === "string")) {
+      return truncate(`wants to run: ${command.join(" ")}`, 280);
+    }
+    return "wants to run a command";
+  }
+  return "wants to apply a patch";
 }
 
 function truncate(text: string, max = 80): string {

@@ -61,6 +61,24 @@ describe("CodexCollector", () => {
     expect(items[0]).toMatchObject({ status: "waiting", attention: "approve" });
   });
 
+  it("previews the pending command on approval requests", async () => {
+    const root = fixture([
+      meta,
+      { type: "event_msg", timestamp: now, payload: { type: "task_started" } },
+      { type: "event_msg", timestamp: now, payload: { type: "exec_approval_request", command: ["rm", "-rf", "build"] } }
+    ]);
+    const items = await new CodexCollector(root).collect();
+    expect(items[0]?.detail).toBe("wants to run: rm -rf build");
+
+    const patch = fixture([
+      meta,
+      { type: "event_msg", timestamp: now, payload: { type: "task_started" } },
+      { type: "event_msg", timestamp: now, payload: { type: "apply_patch_approval_request" } }
+    ]);
+    const patchItems = await new CodexCollector(patch).collect();
+    expect(patchItems[0]?.detail).toBe("wants to apply a patch");
+  });
+
   it("ignores rollouts without session_meta", async () => {
     const root = fixture([{ type: "event_msg", timestamp: now, payload: { type: "task_started" } }]);
     expect(await new CodexCollector(root).collect()).toEqual([]);
