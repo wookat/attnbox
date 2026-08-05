@@ -123,6 +123,10 @@ export function createDaemon(options: DaemonOptions): Daemon {
     };
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(chunk as Buffer);
+    if (Buffer.concat(chunks).length > 65536) {
+      json(413, { ok: false, error: "body too large" });
+      return;
+    }
     let body: { id?: unknown; at?: unknown };
     try {
       body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as typeof body;
@@ -132,6 +136,14 @@ export function createDaemon(options: DaemonOptions): Daemon {
     }
     if (typeof body.id !== "string" || (typeof body.at !== "string" && body.at !== null)) {
       json(400, { ok: false, error: "expected { id: string, at: string | null }" });
+      return;
+    }
+    if (body.at !== null && Number.isNaN(Date.parse(body.at))) {
+      json(400, { ok: false, error: "at must be an ISO timestamp or null" });
+      return;
+    }
+    if (body.at !== null && !snapshot.some((item) => item.id === body.id)) {
+      json(404, { ok: false, error: "unknown item id" });
       return;
     }
     setAck(body.id, body.at);
