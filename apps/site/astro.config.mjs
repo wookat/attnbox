@@ -13,6 +13,7 @@ export default defineConfig({
       social: [{ icon: "github", label: "GitHub", href: "https://github.com/wookat/attnbox" }],
       sidebar: [
         { label: "Quick start", slug: "quickstart" },
+        { label: "Using the inbox", slug: "inbox" },
         { label: "Sources & honest limits", slug: "limits" },
         { label: "Authoritative hooks", slug: "hooks" }
       ],
