@@ -185,6 +185,26 @@ describe("daemon", () => {
     ).toBe(413);
   });
 
+  it("gates /api/* behind the token when one is configured", async () => {
+    const ackFile = join(mkdtempSync(join(tmpdir(), "attnbox-ack-")), "acked.json");
+    daemon = createDaemon({ collectors: [stubCollector([waitingItem])], intervalMs: 60_000, ackFile, token: "s3cret" });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    expect((await fetch(`http://127.0.0.1:${port}/api/items`)).status).toBe(401);
+    expect((await fetch(`http://127.0.0.1:${port}/api/items?token=wrong`)).status).toBe(401);
+    expect((await fetch(`http://127.0.0.1:${port}/api/items?token=s3cret`)).status).toBe(200);
+    expect(
+      (await fetch(`http://127.0.0.1:${port}/api/items`, { headers: { authorization: "Bearer s3cret" } })).status
+    ).toBe(200);
+    const ack = await fetch(`http://127.0.0.1:${port}/api/ack?token=s3cret`, {
+      method: "POST",
+      body: JSON.stringify({ id: "demo:1", at: "2026-08-05T00:00:00Z" })
+    });
+    expect(ack.status).toBe(200);
+    // static shell stays open — the token arrives via /?token= in the first place
+    expect((await fetch(`http://127.0.0.1:${port}/`)).status).toBe(200);
+  });
+
   it("serves a fallback page when no web UI is built", async () => {
     daemon = createDaemon({ collectors: [], intervalMs: 60_000 });
     await daemon.ready;

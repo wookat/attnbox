@@ -45,3 +45,15 @@ Devin items that are waiting on you show a `↩` button (or press `r`): type an 
 The bell toggle enables browser notifications: the moment an agent starts waiting on you, you get a notification showing what the agent is asking, deep-linking to the session. Already-handled items never notify.
 
 Notifications carry a **✓ Done** action button (browsers with service-worker notification actions — Chrome, Edge, Android): click it to mark the item handled straight from the notification, without opening the inbox. The ack is persisted by the daemon and synced to your other devices. Browsers without action support show the same notification without the button.
+
+## From your phone
+
+The daemon binds `127.0.0.1` by default — nothing leaves your machine. To open the inbox from another device (e.g. install the PWA on your phone):
+
+```bash
+ATTNBOX_TOKEN=$(openssl rand -hex 24) attnbox --host 0.0.0.0
+```
+
+Then open `http://<your-machine>:4820/?token=<that token>` on the phone once — the token sticks in that browser and every `/api/*` request (SSE, acks, replies) carries it. Without `ATTNBOX_TOKEN`, `--host` refuses to start.
+
+The token protects the API, not the transport (plain HTTP): prefer a private tailnet/VPN (e.g. Tailscale) over exposing a LAN port.

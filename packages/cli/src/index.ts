@@ -33,6 +33,11 @@ Usage:
 
 Options:
   --port <n>         Port for the web inbox (default 4820, env ATTNBOX_PORT)
+  --host <addr>      Bind address (default 127.0.0.1, env ATTNBOX_HOST).
+                     Binding beyond loopback (e.g. for your phone on the same
+                     network) requires ATTNBOX_TOKEN; open the inbox as
+                     http://<host>:<port>/?token=<token>. Prefer a private
+                     tailnet/VPN over exposing a LAN port.
 
 Data stays on this machine. Cloud collectors activate only when their API
 keys are configured (e.g. DEVIN_API_KEY).`;
@@ -133,6 +138,22 @@ async function main(): Promise<void> {
     process.exitCode = 1;
     return;
   }
+  const hostIdx = args.indexOf("--host");
+  const host = hostIdx >= 0 ? (args[hostIdx + 1] ?? "") : (process.env["ATTNBOX_HOST"] ?? "127.0.0.1");
+  if (host === "" || host.startsWith("--")) {
+    console.error("attnbox: --host expects a bind address, e.g. `attnbox --host 0.0.0.0`");
+    process.exitCode = 1;
+    return;
+  }
+  const loopback = host === "127.0.0.1" || host === "::1" || host === "localhost";
+  const token = process.env["ATTNBOX_TOKEN"];
+  if (!loopback && !token) {
+    console.error(
+      `attnbox: refusing to bind ${host} without a token — anyone who can reach that address could read your agent activity and reply to your Devin sessions.\nSet ATTNBOX_TOKEN to a long random secret, then open http://${host}:<port>/?token=<that token> on the other device.`
+    );
+    process.exitCode = 1;
+    return;
+  }
   const dist = webDist();
   const devinKey = process.env["DEVIN_API_KEY"];
   const reply = devinKey
@@ -144,12 +165,13 @@ async function main(): Promise<void> {
   const daemon = createDaemon({
     collectors,
     ...(dist ? { webDist: dist } : {}),
-    ...(reply ? { reply } : {})
+    ...(reply ? { reply } : {}),
+    ...(!loopback && token ? { token } : {})
   });
   await daemon.ready;
   let boundPort: number;
   try {
-    boundPort = await listen(daemon, port);
+    boundPort = await listen(daemon, port, host);
   } catch (err) {
     if (err instanceof Error && "code" in err && (err as NodeJS.ErrnoException).code === "EADDRINUSE") {
       console.error(`attnbox: port ${port} is already in use — is another attnbox running? Try \`attnbox --port <n>\``);
@@ -158,7 +180,8 @@ async function main(): Promise<void> {
     }
     throw err;
   }
-  console.log(`attnbox inbox running at http://127.0.0.1:${boundPort}`);
+  console.log(`attnbox inbox running at http://${loopback ? "127.0.0.1" : host}:${boundPort}`);
+  if (!loopback) console.log("non-loopback bind: /api/* requires the ATTNBOX_TOKEN (open /?token=<token> once per device)");
   if (!dist) console.log("(web UI not built — JSON API only at /api/items)");
 }
 
