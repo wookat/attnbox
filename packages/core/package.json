@@ -1,8 +1,15 @@
 {
   "name": "attnbox-core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Shared types and helpers for attnbox — the unified attention inbox for AI coding agents.",
-  "keywords": ["ai", "agents", "inbox", "claude-code", "codex", "devin"],
+  "keywords": [
+    "ai",
+    "agents",
+    "inbox",
+    "claude-code",
+    "codex",
+    "devin"
+  ],
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
