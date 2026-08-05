@@ -11,6 +11,7 @@
 | [epilande/ccmux](https://github.com/epilande/ccmux) | Bun + TS，daemon + TUI | ~113 | 活跃 | tmux 内监控哪个 agent session 需要你，功能最全 |
 | [bjornjee/agent-dashboard](https://github.com/bjornjee/agent-dashboard) | Go（Bubble Tea TUI）+ PWA | ~19 | 活跃 | tmux 编排器 + 手机 PWA 远程审批 + workflow gates |
 | [jeffdhooton/orch](https://github.com/jeffdhooton/orch) | Go CLI | 0 | 停更 | 多 Claude 实例编排（up/send/dash），无状态检测深度 |
+| [omnigent-ai/omnigent](https://github.com/omnigent-ai/omnigent) | Python，server + web/手机/桌面端 | ~8.2k | 活跃（2026-06 新出） | 元 harness：由它启动/包装 Claude/Codex/Cursor 等，带 Inbox（"waiting on you"）、策略审批、云 sandbox（2026-08-05 实测补录，见文末） |
 
 ### 其他同类（检索核对）
 
@@ -29,19 +30,19 @@
 
 ## 二、能力矩阵
 
-| 能力 | ccmux | agent-dashboard | orch | recon/navi 等 | Omnara | Vibe Kanban | **我们（AttnBox）** |
-|---|---|---|---|---|---|---|---|
-| 依赖 tmux | ✅必须 | ✅必须 | ✅必须 | ✅必须 | ❌（包装 CLI） | ❌（自己启动） | **❌ 只读日志/API，不要求 tmux** |
-| 需要"由它启动 agent" | ❌发现已有 | 部分 | ✅ | ❌ | ✅（omnara 命令包装） | ✅ | **❌ 零侵入发现已有会话** |
-| Claude Code | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Codex CLI | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ |
-| Gemini CLI | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ |
-| **云端 agent（Devin/Cursor Cloud/Copilot cloud agent）** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | **✅ 核心差异化** |
-| "等我干什么"分类（审批/提问/审 PR） | ✅（本地） | ✅（本地） | ❌ | 部分 | 部分 | ❌ | ✅ 本地+云端统一 |
-| 移动端一等公民 | ❌ | ✅ PWA（局域网） | ❌ | ❌ | ✅（数据出本机） | ❌ | **✅ 响应式 Web，隐私优先默认不出本机** |
-| 桌面通知/远程动作 | ✅ | ✅ | ❌ | 部分 | ✅ | ❌ | ✅（M2） |
-| 隐私（数据不出本机） | ✅ | ✅ | ✅ | ✅ | ❌云端 | ✅ | ✅默认 |
-| 无 tmux 也可用 | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ |
+| 能力 | ccmux | agent-dashboard | orch | recon/navi 等 | Omnara | Vibe Kanban | Omnigent | **我们（AttnBox）** |
+|---|---|---|---|---|---|---|---|---|
+| 依赖 tmux | ✅必须 | ✅必须 | ✅必须 | ✅必须 | ❌（包装 CLI） | ❌（自己启动） | ❌（包装/启动） | **❌ 只读日志/API，不要求 tmux** |
+| 需要"由它启动 agent" | ❌发现已有 | 部分 | ✅ | ❌ | ✅（omnara 命令包装） | ✅ | ✅（import 仅一次性快照） | **❌ 零侵入发现已有会话** |
+| Claude Code | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Codex CLI | ✅ | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
+| Gemini CLI | ✅ | ❌ | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ |
+| **云端 agent（Devin/Cursor Cloud/Copilot cloud agent）** | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ❌（自建 sandbox 不算） | **✅ 核心差异化** |
+| "等我干什么"分类（审批/提问/审 PR） | ✅（本地） | ✅（本地） | ❌ | 部分 | 部分 | ❌ | ✅（仅它启动的会话） | ✅ 本地+云端统一 |
+| 移动端一等公民 | ❌ | ✅ PWA（局域网） | ❌ | ❌ | ✅（数据出本机） | ❌ | ✅（server 账号体系） | **✅ 响应式 Web，隐私优先默认不出本机** |
+| 桌面通知/远程动作 | ✅ | ✅ | ❌ | 部分 | ✅ | ❌ | ✅ | ✅（M2） |
+| 隐私（数据不出本机） | ✅ | ✅ | ✅ | ✅ | ❌云端 | ✅ | ✅可自托管 | ✅默认 |
+| 无 tmux 也可用 | ❌ | ❌ | ❌ | ❌ | ✅ | ✅ | ✅ | ✅ |
 
 ## 三、结构性缺口（全行业逐项对照）
 
@@ -63,4 +64,5 @@
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
 - **agent-dashboard**：`go build ./cmd/dashboard` 成功；TUI 正常启动（截获画面 "No agents found"）；需 `~/.agent-dashboard/`；adapter 依赖 Claude hooks + JSONL 转录 + `tmux capture-pane`；PWA 走 `make web`。
+- **omnigent**（2026-08-05 补录，ROUND-30）：`uv tool install omnigent`（0.8.2）成功（裸 pip 3.12 下 ResolutionImpossible）；`omnigent server --background` 起 web UI（127.0.0.1:6767），侧栏含 Inbox 页（"Nothing waiting on you — when an agent needs your input…"）；`omnigent import --harness claude` 可一次性导入本地 Claude 会话（只读快照，无后续实时状态）。定位是元 harness：**只看得见由它启动的会话**，不聚合已有原生会话，也不覆盖云端 agent（Devin 等）；手机端走其 server 账号体系。详见 docs/gap/GAP-ROUND-30.md。
 - **orch**：`go build ./cmd/orch` 成功；`orch init` 建库、`orch ps` 正常；无状态检测（不判 waiting），本质是 tmux 会话启动器 + 消息总线；已停更（0 star）。
