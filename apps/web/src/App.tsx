@@ -9,6 +9,22 @@ interface Payload {
 
 type Filter = "all" | "waiting" | "working" | "done";
 
+// Token for non-loopback daemons (attnbox --host): arrives once as ?token=, then
+// sticks in localStorage so notifications, SSE and acks keep working on reloads.
+const TOKEN = ((): string | null => {
+  const fromUrl = new URLSearchParams(window.location.search).get("token");
+  if (fromUrl) {
+    localStorage.setItem("attnbox:token", fromUrl);
+    window.history.replaceState(null, "", window.location.pathname);
+    return fromUrl;
+  }
+  return localStorage.getItem("attnbox:token");
+})();
+
+function api(path: string): string {
+  return TOKEN ? `${path}${path.includes("?") ? "&" : "?"}token=${encodeURIComponent(TOKEN)}` : path;
+}
+
 const FILTERS: { key: Filter; label: string }[] = [
   { key: "all", label: "All" },
   { key: "waiting", label: "Needs you" },
@@ -114,7 +130,7 @@ export default function App() {
             body,
             icon: "/icon-192.png",
             tag: item.id,
-            data: { id: item.id, url: item.url },
+            data: { id: item.id, url: item.url, ackUrl: api("/api/ack") },
             actions: [{ action: "ack", title: "✓ Done" }]
           } as NotificationOptions);
         })
@@ -166,7 +182,7 @@ export default function App() {
       else next[item.id] = at;
       return next;
     });
-    void fetch("/api/ack", {
+    void fetch(api("/api/ack"), {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ id: item.id, at })
@@ -188,7 +204,7 @@ export default function App() {
   }, [unackedWaiting]);
 
   useEffect(() => {
-    const source = new EventSource("/api/events");
+    const source = new EventSource(api("/api/events"));
     source.onopen = () => {
       everConnected.current = true;
       setConnected(true);
@@ -516,7 +532,7 @@ function ReplyBox({ item, onSent, onClose }: { item: AttentionItem; onSent: () =
     if (text.trim() === "" || state === "sending") return;
     setState("sending");
     try {
-      const res = await fetch("/api/reply", {
+      const res = await fetch(api("/api/reply"), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id: item.id, message: text })

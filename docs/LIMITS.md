@@ -18,4 +18,5 @@ General rules:
 - Local collectors never write to agent directories and never spawn or wrap agent processes.
 - A collector failure (missing dir, network error, malformed line) degrades to "no items from that source", never a crash.
 - Heuristic items are marked `~heuristic` in the UI.
+- The daemon binds `127.0.0.1` by default. `attnbox --host` can open it to another device (e.g. your phone), but refuses to start without `ATTNBOX_TOKEN`; every `/api/*` request then requires the token (first visit: `/?token=<token>`). Prefer a private tailnet/VPN over exposing a LAN port — the token protects the API, not the transport (plain HTTP).
 - Notifications fire only while the inbox is open somewhere (a tab or the installed PWA, foreground or background). There is deliberately **no push server**: Web Push would require relaying your agent activity through a third-party push service, which contradicts local-first. If nothing has the inbox open, nothing notifies — the items are still waiting when you return.

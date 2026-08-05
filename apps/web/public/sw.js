@@ -16,10 +16,10 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const { id, url } = event.notification.data ?? {};
+  const { id, url, ackUrl } = event.notification.data ?? {};
   if (event.action === "ack" && id) {
     event.waitUntil(
-      fetch("/api/ack", {
+      fetch(ackUrl ?? "/api/ack", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ id, at: new Date().toISOString() })

@@ -20,6 +20,8 @@ export interface DaemonOptions {
   reply?: (itemId: string, message: string) => Promise<ReplyResult>;
   /** File persisting handled/ack state across browsers and devices. */
   ackFile?: string;
+  /** When set, every /api/* request must present this token (Bearer header or ?token= query). */
+  token?: string;
 }
 
 export interface Daemon {
@@ -89,6 +91,15 @@ export function createDaemon(options: DaemonOptions): Daemon {
 
   function handle(req: IncomingMessage, res: ServerResponse): void {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (options.token && url.pathname.startsWith("/api/")) {
+      const presented =
+        req.headers.authorization === `Bearer ${options.token}` || url.searchParams.get("token") === options.token;
+      if (!presented) {
+        res.writeHead(401, { "content-type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify({ ok: false, error: "missing or invalid token" }));
+        return;
+      }
+    }
     if (url.pathname === "/api/reply" && req.method === "POST") {
       void handleReply(req, res);
       return;
