@@ -26,6 +26,8 @@ export interface AttentionItem {
   lastActivityAt?: string;
   /** Deep link to act on the item (console URL, PR URL, ...). */
   url?: string;
+  /** Short preview of what the agent is asking for, when status === "waiting". */
+  detail?: string;
 }
 
 export interface Collector {

@@ -11,7 +11,10 @@ const STATUS_ICON: Record<AttentionItem["status"], string> = {
 export function formatItem(item: AttentionItem): string {
   const attention = item.attention ? ` [${item.attention}]` : "";
   const where = item.location === "cloud" ? "cloud" : "local";
-  return `${STATUS_ICON[item.status]} ${item.status.padEnd(7)} ${item.agent.padEnd(11)} ${where.padEnd(5)}${attention} ${item.title}`;
+  const line = `${STATUS_ICON[item.status]} ${item.status.padEnd(7)} ${item.agent.padEnd(11)} ${where.padEnd(5)}${attention} ${item.title}`;
+  if (!item.detail) return line;
+  const detail = item.detail.length > 100 ? `${item.detail.slice(0, 99)}…` : item.detail;
+  return `${line}\n  └ ${detail}`;
 }
 
 export function formatList(items: readonly AttentionItem[]): string {
