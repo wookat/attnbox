@@ -30,6 +30,12 @@ node packages/cli/dist/index.js   # run the CLI/daemon locally
 - User-visible capability changes must update `docs/LIMITS.md`.
 - Add a changeset (`pnpm changeset`) when a published package changes behavior.
 
+## Releasing
+
+- `pnpm changeset version` in a PR, then publish each package with **`npm publish`**
+  (per package, from its directory) — `pnpm -r publish` does not upload the README
+  to the registry packument, leaving the npm package pages blank.
+
 ## Reporting bugs / proposing features
 
 Open a GitHub issue with reproduction steps or a concrete use case. For security
