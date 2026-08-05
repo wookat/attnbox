@@ -21,7 +21,7 @@ const STATUS_STYLE: Record<AttentionItem["status"], { dot: string; label: string
   working: { dot: "bg-emerald-400", label: "text-emerald-300" },
   idle: { dot: "bg-zinc-500", label: "text-zinc-400" },
   done: { dot: "bg-sky-500", label: "text-sky-400" },
-  unknown: { dot: "bg-zinc-700", label: "text-zinc-500" }
+  unknown: { dot: "bg-zinc-700", label: "text-zinc-400" }
 };
 
 const AGENT_STYLE: Record<string, string> = {
@@ -275,7 +275,7 @@ export default function App() {
             </span>
             <div>
               <h1 className="text-base font-semibold leading-tight tracking-tight">attnbox</h1>
-              <p className="text-[11px] leading-tight text-zinc-500">agent attention inbox</p>
+              <p className="text-[11px] leading-tight text-zinc-400">agent attention inbox</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -287,7 +287,7 @@ export default function App() {
                 className={`grid size-8 place-items-center rounded-full border text-sm transition-colors ${
                   notify
                     ? "border-amber-700 bg-amber-500/10 text-amber-300"
-                    : "border-zinc-700 text-zinc-500 hover:text-zinc-300"
+                    : "border-zinc-700 text-zinc-400 hover:text-zinc-300"
                 }`}
               >
                 {notify ? "🔔" : "🔕"}
@@ -295,7 +295,7 @@ export default function App() {
             )}
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
-                connected ? "border-emerald-800 text-emerald-300" : "border-zinc-700 text-zinc-500"
+                connected ? "border-emerald-800 text-emerald-300" : "border-zinc-700 text-zinc-400"
               }`}
             >
               <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-zinc-600"}`} />
@@ -323,7 +323,7 @@ export default function App() {
               <span className="text-zinc-300">No one is waiting on you 🎉</span>
             )}
           </p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-sm text-zinc-400">
             {data.summary.working} working · {data.summary.total} sessions tracked
           </p>
         </section>
@@ -382,7 +382,7 @@ export default function App() {
 
         <section>
           {waiting.length > 0 && rest.length > 0 && (
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Everything else</h2>
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-400">Everything else</h2>
           )}
           {visible.length === 0 ? (
             data.items.length === 0 && filter === "all" && query === "" ? (
@@ -413,7 +413,7 @@ export default function App() {
               <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
                 <p className="text-2xl">📭</p>
                 <p className="mt-2 text-sm text-zinc-400">Nothing here</p>
-                <p className="mt-1 text-xs text-zinc-600">
+                <p className="mt-1 text-xs text-zinc-400">
                   {query !== "" ? "No sessions match this search." : "No sessions match this filter."}
                 </p>
               </div>
@@ -435,7 +435,7 @@ export default function App() {
                   >
                     <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
                     <span className="truncate">{name}</span>
-                    <span className="text-zinc-600">{items.length}</span>
+                    <span className="text-zinc-400">{items.length}</span>
                   </button>
                   {!collapsed.has(name) && (
                     <ul className="space-y-2">
@@ -456,7 +456,7 @@ export default function App() {
           )}
         </section>
 
-        <footer className="mt-10 text-center text-[11px] text-zinc-600">
+        <footer className="mt-10 text-center text-[11px] text-zinc-400">
           local-first · data never leaves this machine ·{" "}
           <a className="underline hover:text-zinc-400" href="https://github.com/wookat/attnbox" target="_blank" rel="noreferrer">
             github.com/wookat/attnbox
@@ -564,7 +564,7 @@ function ItemRow({
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium">{item.title}</p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-500">
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
           <span className={style.label}>{item.attention ? ATTENTION_LABEL[item.attention] : item.status}</span>
           <span className={`rounded-full border px-2 py-0.5 ${agentStyle}`}>{item.agent}</span>
           <span className="rounded bg-zinc-800 px-1.5 py-0.5">{item.location}</span>
@@ -578,7 +578,7 @@ function ItemRow({
             {item.detail}
           </p>
         )}
-        {item.project && <p className="mt-1 truncate text-[11px] text-zinc-600">{item.project}</p>}
+        {item.project && <p className="mt-1 truncate text-[11px] text-zinc-400">{item.project}</p>}
         {replying && onReplyToggle && (
           <ReplyBox item={item} onSent={() => onReplied?.()} onClose={onReplyToggle} />
         )}
@@ -592,7 +592,7 @@ function ItemRow({
           }}
           title="Reply without leaving the inbox (r)"
           aria-label="Reply"
-          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-500 transition-colors hover:border-sky-700 hover:text-sky-300"
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-400 transition-colors hover:border-sky-700 hover:text-sky-300"
         >
           ↩
         </button>
@@ -606,12 +606,12 @@ function ItemRow({
           }}
           title={dimmed ? "Mark as unhandled" : "Mark as handled (e)"}
           aria-label={dimmed ? "Mark as unhandled" : "Mark as handled"}
-          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-500 transition-colors hover:border-emerald-700 hover:text-emerald-300"
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-400 transition-colors hover:border-emerald-700 hover:text-emerald-300"
         >
           ✓
         </button>
       )}
-      {item.url && <span className="mt-1 text-zinc-600">↗</span>}
+      {item.url && <span className="mt-1 text-zinc-400">↗</span>}
     </div>
   );
   return (
