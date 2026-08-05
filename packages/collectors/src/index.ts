@@ -19,7 +19,7 @@ export {
   type CodexNotifyInput,
   type CodexNotifyState
 } from "./codexNotify.js";
-export { DevinCollector, mapStatus } from "./devin.js";
+export { DevinCollector, mapStatus, sendDevinMessage, type SendResult } from "./devin.js";
 export { GeminiCollector } from "./gemini.js";
 export { GithubReviewCollector } from "./github.js";
 

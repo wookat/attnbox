@@ -4,6 +4,7 @@ import type { AttentionItem, InboxSummary } from "attnbox-core";
 interface Payload {
   items: AttentionItem[];
   summary: InboxSummary;
+  acked?: Record<string, string>;
 }
 
 type Filter = "all" | "waiting" | "working" | "done";
@@ -77,12 +78,14 @@ export default function App() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [acked, setAcked] = useState<Record<string, string>>(() => {
     try {
+      // migration fallback: pre-daemon-persistence state lived in this browser only
       return JSON.parse(localStorage.getItem("attnbox:acked") ?? "{}") as Record<string, string>;
     } catch {
       return {};
     }
   });
   const [grouped, setGrouped] = useState(() => localStorage.getItem("attnbox:group") === "on");
+  const [replyingId, setReplyingId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
@@ -123,6 +126,10 @@ export default function App() {
   }, [acked]);
 
   useEffect(() => {
+    if (data.acked) setAcked(data.acked);
+  }, [data.acked]);
+
+  useEffect(() => {
     localStorage.setItem("attnbox:group", grouped ? "on" : "off");
   }, [grouped]);
 
@@ -133,11 +140,19 @@ export default function App() {
   }
 
   function toggleAck(item: AttentionItem): void {
+    const at = isAcked(item) ? null : (item.lastActivityAt ?? new Date().toISOString());
     setAcked((prev) => {
       const next = { ...prev };
-      if (isAcked(item)) delete next[item.id];
-      else next[item.id] = item.lastActivityAt ?? new Date().toISOString();
+      if (at === null) delete next[item.id];
+      else next[item.id] = at;
       return next;
+    });
+    void fetch("/api/ack", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: item.id, at })
+    }).catch(() => {
+      // daemon unreachable — the optimistic local state still applies in this tab
     });
   }
 
@@ -175,6 +190,7 @@ export default function App() {
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLTextAreaElement) return;
       if (e.target instanceof HTMLInputElement) {
         if (e.key === "Escape") {
           setQuery("");
@@ -216,11 +232,34 @@ export default function App() {
       if (e.key === "e" && selectedId) {
         const item = ordered.find((i) => i.id === selectedId);
         if (item?.status === "waiting") toggleAck(item);
+        return;
+      }
+      if (e.key === "r" && selectedId) {
+        const item = ordered.find((i) => i.id === selectedId);
+        if (item && canReply(item)) {
+          e.preventDefault();
+          setReplyingId((prev) => (prev === item.id ? null : item.id));
+        }
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [ordered, selectedId, acked]);
+
+  function rowProps(item: AttentionItem) {
+    return {
+      selected: item.id === selectedId,
+      dimmed: isAcked(item),
+      onAck: item.status === "waiting" ? () => toggleAck(item) : undefined,
+      replying: replyingId === item.id,
+      onReplyToggle: canReply(item)
+        ? () => setReplyingId((prev) => (prev === item.id ? null : item.id))
+        : undefined,
+      onReplied: () => {
+        if (!isAcked(item)) toggleAck(item);
+      }
+    };
+  }
 
   return (
     <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">
@@ -325,7 +364,7 @@ export default function App() {
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
             <ul className="space-y-2">
               {waiting.map((item) => (
-                <ItemRow key={item.id} item={item} highlight selected={item.id === selectedId} onAck={() => toggleAck(item)} />
+                <ItemRow key={item.id} item={item} highlight {...rowProps(item)} />
               ))}
             </ul>
           </section>
@@ -369,7 +408,7 @@ export default function App() {
                   {!collapsed.has(name) && (
                     <ul className="space-y-2">
                       {items.map((item) => (
-                        <ItemRow key={item.id} item={item} selected={item.id === selectedId} dimmed={isAcked(item)} onAck={item.status === "waiting" ? () => toggleAck(item) : undefined} />
+                        <ItemRow key={item.id} item={item} {...rowProps(item)} />
                       ))}
                     </ul>
                   )}
@@ -379,7 +418,7 @@ export default function App() {
           ) : (
             <ul className="space-y-2">
               {rest.map((item) => (
-                <ItemRow key={item.id} item={item} selected={item.id === selectedId} dimmed={isAcked(item)} onAck={item.status === "waiting" ? () => toggleAck(item) : undefined} />
+                <ItemRow key={item.id} item={item} {...rowProps(item)} />
               ))}
             </ul>
           )}
@@ -396,18 +435,89 @@ export default function App() {
   );
 }
 
+function canReply(item: AttentionItem): boolean {
+  return item.agent === "devin" && item.status === "waiting";
+}
+
+function ReplyBox({ item, onSent, onClose }: { item: AttentionItem; onSent: () => void; onClose: () => void }) {
+  const [text, setText] = useState("");
+  const [state, setState] = useState<"idle" | "sending" | "error">("idle");
+  const [error, setError] = useState("");
+
+  async function send(): Promise<void> {
+    if (text.trim() === "" || state === "sending") return;
+    setState("sending");
+    try {
+      const res = await fetch("/api/reply", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: item.id, message: text })
+      });
+      const body = (await res.json()) as { ok: boolean; error?: string };
+      if (body.ok) {
+        onSent();
+        onClose();
+        return;
+      }
+      setError(body.error ?? `HTTP ${res.status}`);
+    } catch {
+      setError("daemon unreachable");
+    }
+    setState("error");
+  }
+
+  return (
+    <div
+      className="mt-2 flex items-start gap-2"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      }}
+    >
+      <textarea
+        autoFocus
+        rows={2}
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          e.stopPropagation();
+          if (e.key === "Escape") onClose();
+          if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void send();
+        }}
+        placeholder="Reply to this agent… (⌘↵ to send, Esc to cancel)"
+        aria-label={`Reply to ${item.title}`}
+        className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950/60 px-2.5 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+      />
+      <button
+        onClick={() => void send()}
+        disabled={state === "sending" || text.trim() === ""}
+        className="rounded-lg border border-sky-800 bg-sky-500/10 px-2.5 py-1.5 text-xs text-sky-300 disabled:opacity-40"
+      >
+        {state === "sending" ? "…" : "Send"}
+      </button>
+      {state === "error" && <span className="mt-1.5 text-[11px] text-red-400">{error}</span>}
+    </div>
+  );
+}
+
 function ItemRow({
   item,
   highlight = false,
   selected = false,
   dimmed = false,
-  onAck
+  onAck,
+  replying = false,
+  onReplyToggle,
+  onReplied
 }: {
   item: AttentionItem;
   highlight?: boolean;
   selected?: boolean;
   dimmed?: boolean;
   onAck?: (() => void) | undefined;
+  replying?: boolean;
+  onReplyToggle?: (() => void) | undefined;
+  onReplied?: (() => void) | undefined;
 }) {
   const style = STATUS_STYLE[item.status];
   const agentStyle = AGENT_STYLE[item.agent] ?? "bg-zinc-500/15 text-zinc-300 border-zinc-500/20";
@@ -432,7 +542,24 @@ function ItemRow({
           {item.lastActivityAt && <span>{timeAgo(item.lastActivityAt)}</span>}
         </p>
         {item.project && <p className="mt-1 truncate text-[11px] text-zinc-600">{item.project}</p>}
+        {replying && onReplyToggle && (
+          <ReplyBox item={item} onSent={() => onReplied?.()} onClose={onReplyToggle} />
+        )}
       </div>
+      {onReplyToggle && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onReplyToggle();
+          }}
+          title="Reply without leaving the inbox (r)"
+          aria-label="Reply"
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-500 transition-colors hover:border-sky-700 hover:text-sky-300"
+        >
+          ↩
+        </button>
+      )}
       {onAck && (
         <button
           onClick={(e) => {

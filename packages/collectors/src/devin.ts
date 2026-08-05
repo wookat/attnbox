@@ -86,3 +86,34 @@ export function mapStatus(statusEnum: string | undefined): SessionStatus {
 function sessionUrl(sessionId: string): string {
   return `https://app.devin.ai/sessions/${sessionId.replace(/^devin-/, "")}`;
 }
+
+export interface SendResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
+/** Send a user message to a Devin session (act-in-place for blocked sessions). */
+export async function sendDevinMessage(
+  apiKey: string,
+  sessionId: string,
+  message: string,
+  baseUrl = "https://api.devin.ai/v1",
+  fetchImpl: typeof fetch = fetch
+): Promise<SendResult> {
+  if (!/^[\w-]+$/.test(sessionId)) return { ok: false, error: "invalid session id" };
+  if (message.trim() === "") return { ok: false, error: "empty message" };
+  try {
+    const res = await fetchImpl(`${baseUrl}/session/${sessionId}/message`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ message })
+    });
+    return res.ok ? { ok: true, status: res.status } : { ok: false, status: res.status, error: `HTTP ${res.status}` };
+  } catch {
+    return { ok: false, error: "network error" };
+  }
+}

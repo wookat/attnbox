@@ -1,3 +1,6 @@
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { AttentionItem, Collector } from "attnbox-core";
 import { createDaemon, listen, type Daemon } from "./index.js";
@@ -58,6 +61,104 @@ describe("daemon", () => {
     daemon = createDaemon({ collectors: [throwing, stubCollector([waitingItem])], intervalMs: 60_000 });
     await daemon.ready;
     expect(daemon.items()).toHaveLength(1);
+  });
+
+  it("forwards /api/reply to the configured handler", async () => {
+    const calls: [string, string][] = [];
+    daemon = createDaemon({
+      collectors: [stubCollector([waitingItem])],
+      intervalMs: 60_000,
+      reply: async (id, message) => {
+        calls.push([id, message]);
+        return { ok: true, status: 200 };
+      }
+    });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const res = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: "devin:abc", message: "go ahead" })
+    });
+    expect(res.status).toBe(200);
+    expect(calls).toEqual([["devin:abc", "go ahead"]]);
+  });
+
+  it("rejects bad /api/reply requests without calling the handler", async () => {
+    let called = 0;
+    daemon = createDaemon({
+      collectors: [],
+      intervalMs: 60_000,
+      reply: async () => {
+        called += 1;
+        return { ok: true };
+      }
+    });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const bad = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      body: JSON.stringify({ id: 1 })
+    });
+    expect(bad.status).toBe(400);
+    const invalid = await fetch(`http://127.0.0.1:${port}/api/reply`, { method: "POST", body: "{" });
+    expect(invalid.status).toBe(400);
+    expect(called).toBe(0);
+  });
+
+  it("returns 501 from /api/reply when no handler is configured", async () => {
+    daemon = createDaemon({ collectors: [], intervalMs: 60_000 });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const res = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      body: JSON.stringify({ id: "devin:abc", message: "hi" })
+    });
+    expect(res.status).toBe(501);
+  });
+
+  it("persists ack state to disk and includes it in payloads", async () => {
+    const ackFile = join(mkdtempSync(join(tmpdir(), "attnbox-ack-")), "acked.json");
+    daemon = createDaemon({ collectors: [stubCollector([waitingItem])], intervalMs: 60_000, ackFile });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const set = await fetch(`http://127.0.0.1:${port}/api/ack`, {
+      method: "POST",
+      body: JSON.stringify({ id: "demo:1", at: "2026-08-05T00:00:00Z" })
+    });
+    expect(set.status).toBe(200);
+    const items = (await (await fetch(`http://127.0.0.1:${port}/api/items`)).json()) as {
+      acked: Record<string, string>;
+    };
+    expect(items.acked).toEqual({ "demo:1": "2026-08-05T00:00:00Z" });
+    await daemon.close();
+
+    // a fresh daemon reads the same file — state survives restarts and is shared across devices
+    daemon = createDaemon({ collectors: [], intervalMs: 60_000, ackFile });
+    await daemon.ready;
+    const port2 = await listen(daemon, 0);
+    const again = (await (await fetch(`http://127.0.0.1:${port2}/api/items`)).json()) as {
+      acked: Record<string, string>;
+    };
+    expect(again.acked).toEqual({ "demo:1": "2026-08-05T00:00:00Z" });
+    const unset = await fetch(`http://127.0.0.1:${port2}/api/ack`, {
+      method: "POST",
+      body: JSON.stringify({ id: "demo:1", at: null })
+    });
+    expect(unset.status).toBe(200);
+    expect(((await (await fetch(`http://127.0.0.1:${port2}/api/items`)).json()) as { acked: object }).acked).toEqual({});
+  });
+
+  it("rejects malformed /api/ack input", async () => {
+    const ackFile = join(mkdtempSync(join(tmpdir(), "attnbox-ack-")), "acked.json");
+    daemon = createDaemon({ collectors: [], intervalMs: 60_000, ackFile });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    expect((await fetch(`http://127.0.0.1:${port}/api/ack`, { method: "POST", body: "{" })).status).toBe(400);
+    expect(
+      (await fetch(`http://127.0.0.1:${port}/api/ack`, { method: "POST", body: JSON.stringify({ id: 1, at: "x" }) }))
+        .status
+    ).toBe(400);
   });
 
   it("serves a fallback page when no web UI is built", async () => {
