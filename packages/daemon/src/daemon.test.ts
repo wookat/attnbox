@@ -60,6 +60,60 @@ describe("daemon", () => {
     expect(daemon.items()).toHaveLength(1);
   });
 
+  it("forwards /api/reply to the configured handler", async () => {
+    const calls: [string, string][] = [];
+    daemon = createDaemon({
+      collectors: [stubCollector([waitingItem])],
+      intervalMs: 60_000,
+      reply: async (id, message) => {
+        calls.push([id, message]);
+        return { ok: true, status: 200 };
+      }
+    });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const res = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ id: "devin:abc", message: "go ahead" })
+    });
+    expect(res.status).toBe(200);
+    expect(calls).toEqual([["devin:abc", "go ahead"]]);
+  });
+
+  it("rejects bad /api/reply requests without calling the handler", async () => {
+    let called = 0;
+    daemon = createDaemon({
+      collectors: [],
+      intervalMs: 60_000,
+      reply: async () => {
+        called += 1;
+        return { ok: true };
+      }
+    });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const bad = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      body: JSON.stringify({ id: 1 })
+    });
+    expect(bad.status).toBe(400);
+    const invalid = await fetch(`http://127.0.0.1:${port}/api/reply`, { method: "POST", body: "{" });
+    expect(invalid.status).toBe(400);
+    expect(called).toBe(0);
+  });
+
+  it("returns 501 from /api/reply when no handler is configured", async () => {
+    daemon = createDaemon({ collectors: [], intervalMs: 60_000 });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const res = await fetch(`http://127.0.0.1:${port}/api/reply`, {
+      method: "POST",
+      body: JSON.stringify({ id: "devin:abc", message: "hi" })
+    });
+    expect(res.status).toBe(501);
+  });
+
   it("serves a fallback page when no web UI is built", async () => {
     daemon = createDaemon({ collectors: [], intervalMs: 60_000 });
     await daemon.ready;

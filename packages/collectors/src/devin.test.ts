@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DevinCollector, mapStatus } from "./devin.js";
+import { DevinCollector, mapStatus, sendDevinMessage } from "./devin.js";
 
 function fakeFetch(body: unknown, ok = true): typeof fetch {
   return (async () =>
@@ -65,6 +65,44 @@ describe("DevinCollector", () => {
       throw new Error("network");
     }) as unknown as typeof fetch;
     expect(await new DevinCollector("k", "u", throwing).collect()).toEqual([]);
+  });
+});
+
+describe("sendDevinMessage", () => {
+  it("posts the message to the session endpoint", async () => {
+    const calls: [string, RequestInit | undefined][] = [];
+    const fetchImpl = (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push([String(url), init]);
+      return { ok: true, status: 200 } as Response;
+    }) as typeof fetch;
+    const result = await sendDevinMessage("key", "devin-abc", "go ahead", "https://api.devin.ai/v1", fetchImpl);
+    expect(result).toEqual({ ok: true, status: 200 });
+    expect(calls[0]?.[0]).toBe("https://api.devin.ai/v1/session/devin-abc/message");
+    expect(JSON.parse(String(calls[0]?.[1]?.body))).toEqual({ message: "go ahead" });
+  });
+
+  it("refuses invalid session ids and empty messages without calling the API", async () => {
+    let called = 0;
+    const fetchImpl = (async () => {
+      called += 1;
+      return { ok: true, status: 200 } as Response;
+    }) as typeof fetch;
+    expect((await sendDevinMessage("k", "../etc", "hi", undefined, fetchImpl)).ok).toBe(false);
+    expect((await sendDevinMessage("k", "devin-abc", "  ", undefined, fetchImpl)).ok).toBe(false);
+    expect(called).toBe(0);
+  });
+
+  it("reports HTTP and network failures", async () => {
+    const bad = (async () => ({ ok: false, status: 401 }) as Response) as typeof fetch;
+    expect(await sendDevinMessage("k", "devin-abc", "hi", undefined, bad)).toEqual({
+      ok: false,
+      status: 401,
+      error: "HTTP 401"
+    });
+    const down = (async () => {
+      throw new Error("network");
+    }) as unknown as typeof fetch;
+    expect((await sendDevinMessage("k", "devin-abc", "hi", undefined, down)).error).toBe("network error");
   });
 });
 

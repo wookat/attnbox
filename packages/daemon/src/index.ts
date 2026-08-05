@@ -3,12 +3,20 @@ import { existsSync, readFileSync } from "node:fs";
 import { extname, join, normalize } from "node:path";
 import { sortItems, summarize, type AttentionItem, type Collector } from "attnbox-core";
 
+export interface ReplyResult {
+  ok: boolean;
+  status?: number;
+  error?: string;
+}
+
 export interface DaemonOptions {
   collectors: Collector[];
   /** Poll interval in ms. */
   intervalMs?: number;
   /** Directory of the built web UI; served at `/` when present. */
   webDist?: string;
+  /** Optional act-in-place handler: send a reply to the agent behind an item. */
+  reply?: (itemId: string, message: string) => Promise<ReplyResult>;
 }
 
 export interface Daemon {
@@ -60,6 +68,10 @@ export function createDaemon(options: DaemonOptions): Daemon {
 
   function handle(req: IncomingMessage, res: ServerResponse): void {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (url.pathname === "/api/reply" && req.method === "POST") {
+      void handleReply(req, res);
+      return;
+    }
     if (url.pathname === "/api/items") {
       res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ items: snapshot, summary: summarize(snapshot) }));
@@ -77,6 +89,37 @@ export function createDaemon(options: DaemonOptions): Daemon {
       return;
     }
     serveStatic(url.pathname, res, options.webDist);
+  }
+
+  async function handleReply(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const json = (code: number, body: unknown): void => {
+      res.writeHead(code, { "content-type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify(body));
+    };
+    if (!options.reply) {
+      json(501, { ok: false, error: "no reply handler configured" });
+      return;
+    }
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) chunks.push(chunk as Buffer);
+    if (Buffer.concat(chunks).length > 65536) {
+      json(413, { ok: false, error: "message too large" });
+      return;
+    }
+    let body: { id?: unknown; message?: unknown };
+    try {
+      body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as typeof body;
+    } catch {
+      json(400, { ok: false, error: "invalid JSON" });
+      return;
+    }
+    if (typeof body.id !== "string" || typeof body.message !== "string" || body.message.trim() === "") {
+      json(400, { ok: false, error: "expected { id: string, message: string }" });
+      return;
+    }
+    const result = await options.reply(body.id, body.message);
+    json(result.ok ? 200 : 502, result);
+    if (result.ok) void refresh();
   }
 
   const server = createServer(handle);

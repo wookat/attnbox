@@ -8,9 +8,10 @@ import {
   codexNotifySettingsSnippet,
   defaultCollectors,
   recordClaudeHookEvent,
-  recordCodexNotifyEvent
+  recordCodexNotifyEvent,
+  sendDevinMessage
 } from "attnbox-collectors";
-import { createDaemon, listen } from "attnbox-daemon";
+import { createDaemon, listen, type ReplyResult } from "attnbox-daemon";
 import { sortItems, summarize } from "attnbox-core";
 import { formatList } from "./format.js";
 
@@ -100,7 +101,18 @@ async function main(): Promise<void> {
   const portIdx = args.indexOf("--port");
   const port = portIdx >= 0 ? Number(args[portIdx + 1]) : Number(process.env["ATTNBOX_PORT"] ?? 4820);
   const dist = webDist();
-  const daemon = createDaemon(dist ? { collectors, webDist: dist } : { collectors });
+  const devinKey = process.env["DEVIN_API_KEY"];
+  const reply = devinKey
+    ? async (itemId: string, message: string): Promise<ReplyResult> => {
+        if (!itemId.startsWith("devin:")) return { ok: false, error: "replies are only supported for devin items" };
+        return sendDevinMessage(devinKey, itemId.slice("devin:".length), message);
+      }
+    : undefined;
+  const daemon = createDaemon({
+    collectors,
+    ...(dist ? { webDist: dist } : {}),
+    ...(reply ? { reply } : {})
+  });
   await daemon.ready;
   const boundPort = await listen(daemon, port);
   console.log(`attnbox inbox running at http://127.0.0.1:${boundPort}`);
