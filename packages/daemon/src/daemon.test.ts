@@ -159,6 +159,30 @@ describe("daemon", () => {
       (await fetch(`http://127.0.0.1:${port}/api/ack`, { method: "POST", body: JSON.stringify({ id: 1, at: "x" }) }))
         .status
     ).toBe(400);
+    expect(
+      (
+        await fetch(`http://127.0.0.1:${port}/api/ack`, {
+          method: "POST",
+          body: JSON.stringify({ id: "demo:1", at: "not-a-date" })
+        })
+      ).status
+    ).toBe(400);
+    expect(
+      (
+        await fetch(`http://127.0.0.1:${port}/api/ack`, {
+          method: "POST",
+          body: JSON.stringify({ id: "unknown:1", at: "2026-08-05T00:00:00Z" })
+        })
+      ).status
+    ).toBe(404);
+    expect(
+      (
+        await fetch(`http://127.0.0.1:${port}/api/ack`, {
+          method: "POST",
+          body: JSON.stringify({ id: "x".repeat(70000), at: "2026-08-05T00:00:00Z" })
+        })
+      ).status
+    ).toBe(413);
   });
 
   it("serves a fallback page when no web UI is built", async () => {
