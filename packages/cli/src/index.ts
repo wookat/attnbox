@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   claudeHooksSettingsSnippet,
+  codexHooksJsonSnippet,
   codexNotifySettingsSnippet,
   defaultCollectors,
   recordClaudeHookEvent,
@@ -18,10 +19,11 @@ const HELP = `attnbox — unified attention inbox for your AI coding agents
 Usage:
   attnbox            Start the daemon and web inbox (http://127.0.0.1:4820)
   attnbox ls         One-shot: list sessions and who is waiting on you
+                     (--waiting: only items waiting on you; --json: machine output)
   attnbox hooks      Print the config snippets enabling authoritative status
                      via Claude Code hooks and the Codex notify hook
   attnbox hook claude   (used by Claude hooks) record a hook event from stdin
-  attnbox hook codex    (used by Codex notify) record a turn-complete event
+  attnbox hook codex    (used by Codex hooks/notify) record a lifecycle event
   attnbox --help     Show this help
 
 Options:
@@ -51,7 +53,9 @@ async function main(): Promise<void> {
   if (args[0] === "hooks") {
     console.log("# merge into ~/.claude/settings.json:");
     console.log(claudeHooksSettingsSnippet());
-    console.log("\n# add to ~/.codex/config.toml:");
+    console.log("\n# merge into ~/.codex/hooks.json (authoritative waiting/approve; needs `[features] codex_hooks = true` in ~/.codex/config.toml):");
+    console.log(codexHooksJsonSnippet());
+    console.log("\n# or minimal fallback — add to ~/.codex/config.toml (turn-complete only):");
     console.log(codexNotifySettingsSnippet());
     return;
   }
@@ -81,8 +85,13 @@ async function main(): Promise<void> {
 
   if (args[0] === "ls") {
     const results = await Promise.all(collectors.map((c) => c.collect().catch(() => [])));
-    const items = sortItems(results.flat());
+    let items = sortItems(results.flat());
     const s = summarize(items);
+    if (args.includes("--waiting")) items = items.filter((i) => i.status === "waiting");
+    if (args.includes("--json")) {
+      console.log(JSON.stringify({ items, summary: s }, null, 2));
+      return;
+    }
     console.log(formatList(items));
     console.log(`\n${s.waiting} waiting on you · ${s.working} working · ${s.total} total`);
     return;

@@ -53,6 +53,12 @@ function matches(item: AttentionItem, filter: Filter): boolean {
   return item.status === filter;
 }
 
+function matchesQuery(item: AttentionItem, query: string): boolean {
+  if (query === "") return true;
+  const q = query.toLowerCase();
+  return [item.title, item.project ?? "", item.agent].some((f) => f.toLowerCase().includes(q));
+}
+
 function notificationsSupported(): boolean {
   return typeof Notification !== "undefined";
 }
@@ -67,6 +73,9 @@ export default function App() {
   const [notify, setNotify] = useState(
     () => notificationsSupported() && Notification.permission === "granted" && localStorage.getItem("attnbox:notify") !== "off"
   );
+  const [query, setQuery] = useState("");
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
 
   useEffect(() => {
@@ -112,9 +121,57 @@ export default function App() {
     return () => source.close();
   }, []);
 
-  const visible = useMemo(() => data.items.filter((i) => matches(i, filter)), [data.items, filter]);
+  const visible = useMemo(
+    () => data.items.filter((i) => matches(i, filter) && matchesQuery(i, query)),
+    [data.items, filter, query]
+  );
   const waiting = visible.filter((i) => i.status === "waiting");
   const rest = visible.filter((i) => i.status !== "waiting");
+  const ordered = useMemo(() => visible.slice().sort((a, b) => (a.status === "waiting" ? 0 : 1) - (b.status === "waiting" ? 0 : 1)), [visible]);
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.target instanceof HTMLInputElement) {
+        if (e.key === "Escape") {
+          setQuery("");
+          e.target.blur();
+        }
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "/") {
+        e.preventDefault();
+        searchRef.current?.focus();
+        return;
+      }
+      if (e.key === "Escape") {
+        setQuery("");
+        setSelectedId(null);
+        return;
+      }
+      const isDown = e.key === "j" || e.key === "ArrowDown";
+      const isUp = e.key === "k" || e.key === "ArrowUp";
+      if (isDown || isUp) {
+        e.preventDefault();
+        setSelectedId((prev) => {
+          if (ordered.length === 0) return null;
+          const idx = ordered.findIndex((i) => i.id === prev);
+          const nextIdx =
+            idx < 0 ? (isDown ? 0 : ordered.length - 1) : Math.min(Math.max(idx + (isDown ? 1 : -1), 0), ordered.length - 1);
+          const id = ordered[nextIdx]!.id;
+          document.getElementById(`item-${id}`)?.scrollIntoView({ block: "nearest" });
+          return id;
+        });
+        return;
+      }
+      if (e.key === "Enter" && selectedId) {
+        const item = ordered.find((i) => i.id === selectedId);
+        if (item?.url) window.open(item.url, "_blank");
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [ordered, selectedId]);
 
   return (
     <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">
@@ -173,6 +230,18 @@ export default function App() {
           </p>
         </section>
 
+        <div className="mb-3">
+          <input
+            ref={searchRef}
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search title, project, agent…  ( / )"
+            aria-label="Search sessions"
+            className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+          />
+        </div>
+
         <nav className="mb-5 flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
           {FILTERS.map(({ key, label }) => (
             <button
@@ -197,7 +266,7 @@ export default function App() {
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
             <ul className="space-y-2">
               {waiting.map((item) => (
-                <ItemRow key={item.id} item={item} highlight />
+                <ItemRow key={item.id} item={item} highlight selected={item.id === selectedId} />
               ))}
             </ul>
           </section>
@@ -214,13 +283,15 @@ export default function App() {
               <p className="mt-1 text-xs text-zinc-600">
                 {filter === "all"
                   ? "Start a Claude Code / Codex / Gemini session, or configure a cloud API key."
-                  : "No sessions match this filter."}
+                  : query !== ""
+                    ? "No sessions match this search."
+                    : "No sessions match this filter."}
               </p>
             </div>
           ) : (
             <ul className="space-y-2">
               {rest.map((item) => (
-                <ItemRow key={item.id} item={item} />
+                <ItemRow key={item.id} item={item} selected={item.id === selectedId} />
               ))}
             </ul>
           )}
@@ -237,14 +308,22 @@ export default function App() {
   );
 }
 
-function ItemRow({ item, highlight = false }: { item: AttentionItem; highlight?: boolean }) {
+function ItemRow({
+  item,
+  highlight = false,
+  selected = false
+}: {
+  item: AttentionItem;
+  highlight?: boolean;
+  selected?: boolean;
+}) {
   const style = STATUS_STYLE[item.status];
   const agentStyle = AGENT_STYLE[item.agent] ?? "bg-zinc-500/15 text-zinc-300 border-zinc-500/20";
   const body = (
     <div
       className={`flex items-start gap-3 rounded-xl border p-3 transition-colors sm:p-4 ${
         highlight ? "border-amber-900/60 bg-amber-950/20" : "border-zinc-800 bg-zinc-900/40"
-      } ${item.url ? "hover:border-zinc-600 active:bg-zinc-900" : ""}`}
+      } ${item.url ? "hover:border-zinc-600 active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-400/70" : ""}`}
     >
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
       <div className="min-w-0 flex-1">
@@ -264,7 +343,7 @@ function ItemRow({ item, highlight = false }: { item: AttentionItem; highlight?:
     </div>
   );
   return (
-    <li>
+    <li id={`item-${item.id}`}>
       {item.url ? (
         <a href={item.url} target="_blank" rel="noreferrer">
           {body}
