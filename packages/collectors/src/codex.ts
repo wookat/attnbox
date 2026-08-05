@@ -46,6 +46,7 @@ export class CodexCollector implements Collector {
       lastActivityAt: hook.updatedAt
     };
     delete next.attention;
+    if (hook.attention) next.attention = hook.attention;
     return next;
   }
 }

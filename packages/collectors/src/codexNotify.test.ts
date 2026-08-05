@@ -3,7 +3,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CodexCollector } from "./codex.js";
-import { codexNotifySettingsSnippet, readCodexNotifyState, recordCodexNotifyEvent } from "./codexNotify.js";
+import {
+  codexHooksJsonSnippet,
+  codexNotifySettingsSnippet,
+  mapCodexHookEvent,
+  readCodexNotifyState,
+  recordCodexNotifyEvent
+} from "./codexNotify.js";
 
 function tempDir(): string {
   return mkdtempSync(join(tmpdir(), "attnbox-codex-notify-"));
@@ -35,6 +41,29 @@ describe("recordCodexNotifyEvent", () => {
     expect(recordCodexNotifyEvent({ type: "agent-turn-complete", "thread-id": "../evil" }, dir)).toBeNull();
     expect(recordCodexNotifyEvent({ type: "agent-turn-complete" }, dir)).toBeNull();
   });
+
+  it("persists hooks.json PermissionRequest as waiting/approve", () => {
+    const dir = tempDir();
+    const state = recordCodexNotifyEvent(
+      { hook_event_name: "PermissionRequest", session_id: "sess-1" },
+      dir,
+      new Date("2026-08-05T12:00:00Z")
+    );
+    expect(state).toMatchObject({ threadId: "sess-1", status: "waiting", attention: "approve", event: "PermissionRequest" });
+    expect(readCodexNotifyState("sess-1", dir)).toMatchObject({ status: "waiting", attention: "approve" });
+  });
+
+  it("maps hooks.json lifecycle events and rejects unknown ones", () => {
+    expect(mapCodexHookEvent("Stop")).toEqual({ status: "idle" });
+    expect(mapCodexHookEvent("SubagentStop")).toEqual({ status: "idle" });
+    expect(mapCodexHookEvent("SessionStart")).toEqual({ status: "idle" });
+    expect(mapCodexHookEvent("UserPromptSubmit")).toEqual({ status: "working" });
+    expect(mapCodexHookEvent("PreToolUse")).toEqual({ status: "working" });
+    expect(mapCodexHookEvent("SomethingElse")).toBeNull();
+    const dir = tempDir();
+    expect(recordCodexNotifyEvent({ hook_event_name: "SessionEnd", session_id: "s" }, dir)).toBeNull();
+    expect(recordCodexNotifyEvent({ hook_event_name: "Stop", session_id: "../evil" }, dir)).toBeNull();
+  });
 });
 
 describe("CodexCollector notify integration", () => {
@@ -62,6 +91,24 @@ describe("CodexCollector notify integration", () => {
     expect(items[0]).toMatchObject({ id: "codex:abc", status: "idle", confidence: "authoritative" });
   });
 
+  it("PermissionRequest hook state marks the session waiting for approval", async () => {
+    const sessions = tempDir();
+    const hooks = tempDir();
+    writeRollout(sessions, "abc", "2026-08-04T10:00:00Z");
+    recordCodexNotifyEvent(
+      { hook_event_name: "PermissionRequest", session_id: "abc" },
+      hooks,
+      new Date("2026-08-04T11:00:00Z")
+    );
+    const items = await new CodexCollector(sessions, hooks).collect();
+    expect(items[0]).toMatchObject({
+      id: "codex:abc",
+      status: "waiting",
+      attention: "approve",
+      confidence: "authoritative"
+    });
+  });
+
   it("stale notify state is ignored", async () => {
     const sessions = tempDir();
     const hooks = tempDir();
@@ -79,5 +126,16 @@ describe("CodexCollector notify integration", () => {
 describe("codexNotifySettingsSnippet", () => {
   it("wires notify to attnbox hook codex", () => {
     expect(codexNotifySettingsSnippet()).toBe('notify = ["attnbox", "hook", "codex"]');
+  });
+});
+
+describe("codexHooksJsonSnippet", () => {
+  it("is valid JSON wiring PermissionRequest/Stop/UserPromptSubmit to attnbox", () => {
+    const parsed = JSON.parse(codexHooksJsonSnippet()) as {
+      hooks: Record<string, { hooks: { command: string }[] }[]>;
+    };
+    for (const event of ["PermissionRequest", "Stop", "UserPromptSubmit"]) {
+      expect(parsed.hooks[event]?.[0]?.hooks[0]?.command).toBe("attnbox hook codex");
+    }
   });
 });

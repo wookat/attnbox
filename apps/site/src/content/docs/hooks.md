@@ -19,13 +19,24 @@ Merge the printed JSON into `~/.claude/settings.json`. Claude's own lifecycle ho
 
 ## Codex CLI
 
-Add the printed line to `~/.codex/config.toml`:
+Preferred: merge the printed JSON into `~/.codex/hooks.json` and enable the feature flag in `~/.codex/config.toml`:
+
+```toml
+[features]
+codex_hooks = true
+```
+
+Codex lifecycle hooks then drive status authoritatively:
+
+- `PermissionRequest` → **waiting** (`approve`) — the moment Codex asks for approval
+- `Stop` → **idle** (turn finished, ready for your next prompt)
+- `UserPromptSubmit` → **working**
+
+Fallback (older Codex, turn-complete only): add the printed `notify` line to `~/.codex/config.toml`:
 
 ```toml
 notify = ["attnbox", "hook", "codex"]
 ```
-
-Codex invokes it on `agent-turn-complete`, which attnbox records as an authoritative **idle** (turn finished, ready for your next prompt).
 
 ## How it works
 

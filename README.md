@@ -18,7 +18,7 @@ npx attnbox ls     # one-shot list in your terminal
 
 Enable cloud collectors by exporting keys, e.g. `DEVIN_API_KEY=... npx attnbox`. Set `GITHUB_TOKEN` (or `ATTNBOX_GITHUB_TOKEN`) to include open PRs where your review is requested.
 
-Optional: `npx attnbox hooks` prints config snippets that upgrade Claude Code (via `~/.claude/settings.json` hooks) and Codex CLI (via the `notify` hook in `~/.codex/config.toml`) from heuristic to authoritative status.
+Optional: `npx attnbox hooks` prints config snippets that upgrade Claude Code (via `~/.claude/settings.json` hooks) and Codex CLI (via `~/.codex/hooks.json` lifecycle hooks — including authoritative waiting-for-approval — with the `notify` line in `~/.codex/config.toml` as fallback) from heuristic to authoritative status.
 
 ## Status model
 
