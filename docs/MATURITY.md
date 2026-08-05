@@ -15,4 +15,4 @@ Modeled on agentgate's docs/MATURITY.md. Updated per milestone.
 | Honest capability docs | ✅ per-source confidence documented | `docs/LIMITS.md` |
 | Mobile-first UI | ✅ mobile-first responsive inbox with filters, safe-area support, PWA install + browser notifications | `apps/web` |
 | Performance at scale | ✅ 1,000 sessions: collect 34 ms / 6.6 MB heap (round 3); web UI first render 237 ms, search ~11 ms/keystroke, `j` nav ~14 ms, 38 MB JS heap; SSE broadcasts only on change | `docs/gap/GAP-ROUND-3.md`, `docs/gap/GAP-ROUND-10.md` |
-| Real-world validation | ✅ verified against real `~/.claude`/`~/.codex`/`~/.gemini` files and live Devin API; clean-environment quick-start rerun at M2; `npx attnbox` verified post-publish | docs/FEASIBILITY.md |
+| Real-world validation | ✅ verified against real `~/.claude`/`~/.codex`/`~/.gemini` files and live Devin API; clean-environment quick-start rerun at M2; `npx attnbox` verified post-publish; correctness quantified on a live 104-session workspace: 100/100 Devin statuses exact vs raw API, 0 false positives/negatives | docs/FEASIBILITY.md, `docs/gap/GAP-ROUND-13.md` |
