@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DevinCollector, mapStatus, sendDevinMessage } from "./devin.js";
+import { DevinCollector, MAX_DETAIL_FETCHES_PER_CYCLE, mapStatus, sendDevinMessage } from "./devin.js";
 
 function fakeFetch(body: unknown, ok = true): typeof fetch {
   return (async () =>
@@ -74,6 +74,34 @@ describe("DevinCollector", () => {
     const second = await collector.collect();
     expect(second[0]?.detail).toBe("Should I merge the PR?");
     expect(calls.filter((c) => c.includes("/session/devin-a")).length).toBe(1);
+  });
+
+  it("caps uncached detail fetches per cycle and catches up next cycle", async () => {
+    const sessions = Array.from({ length: 15 }, (_, i) => ({
+      session_id: `devin-${i}`,
+      status_enum: "blocked",
+      updated_at: "t1"
+    }));
+    let detailCalls = 0;
+    const routed = (async (url: RequestInfo | URL) => {
+      if (String(url).includes("/sessions")) {
+        return { ok: true, json: async () => ({ sessions }) } as Response;
+      }
+      detailCalls++;
+      return {
+        ok: true,
+        json: async () => ({ messages: [{ type: "devin_message", message: "q" }] })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", routed);
+
+    const first = await collector.collect();
+    expect(detailCalls).toBe(MAX_DETAIL_FETCHES_PER_CYCLE);
+    expect(first.filter((i) => i.detail).length).toBe(MAX_DETAIL_FETCHES_PER_CYCLE);
+
+    const second = await collector.collect();
+    expect(detailCalls).toBe(15);
+    expect(second.filter((i) => i.detail).length).toBe(15);
   });
 
   it("degrades silently when the detail fetch fails", async () => {

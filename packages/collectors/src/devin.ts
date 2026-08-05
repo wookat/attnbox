@@ -1,5 +1,8 @@
 import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
 
+/** Cap on uncached detail lookups per collect cycle; the rest catch up on later cycles. */
+export const MAX_DETAIL_FETCHES_PER_CYCLE = 10;
+
 /**
  * Cloud collector for Devin sessions via the public API
  * (`GET https://api.devin.ai/v1/sessions`). `status_enum === "blocked"`
@@ -49,6 +52,7 @@ export class DevinCollector implements Collector {
     for (const id of [...this.detailCache.keys()]) {
       if (!waiting.some((w) => w.session.session_id === id)) this.detailCache.delete(id);
     }
+    let fetched = 0;
     await Promise.all(
       waiting.map(async ({ item, session }) => {
         const key = session.session_id;
@@ -58,6 +62,8 @@ export class DevinCollector implements Collector {
           if (cached.detail !== undefined) item.detail = cached.detail;
           return;
         }
+        if (fetched >= MAX_DETAIL_FETCHES_PER_CYCLE) return;
+        fetched++;
         const detail = await this.fetchDetail(key);
         this.detailCache.set(key, { updatedAt, detail });
         if (detail !== undefined) item.detail = detail;
