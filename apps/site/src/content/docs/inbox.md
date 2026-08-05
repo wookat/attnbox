@@ -42,4 +42,6 @@ Devin items that are waiting on you show a `↩` button (or press `r`): type an 
 
 ## Notifications
 
-The bell toggle enables browser notifications: the moment an agent starts waiting on you, you get a notification that deep-links to the session. Already-handled items never notify.
+The bell toggle enables browser notifications: the moment an agent starts waiting on you, you get a notification showing what the agent is asking, deep-linking to the session. Already-handled items never notify.
+
+Notifications carry a **✓ Done** action button (browsers with service-worker notification actions — Chrome, Edge, Android): click it to mark the item handled straight from the notification, without opening the inbox. The ack is persisted by the daemon and synced to your other devices. Browsers without action support show the same notification without the button.
