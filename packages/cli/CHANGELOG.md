@@ -1,5 +1,17 @@
 # attnbox
 
+## 0.3.0
+
+### Minor Changes
+
+- 6145c5a: `attnbox --host <addr>` (env `ATTNBOX_HOST`) opens the inbox to other devices — e.g. install the PWA on your phone. Non-loopback binds refuse to start without `ATTNBOX_TOKEN`; every `/api/*` request then requires the token (Bearer header or `?token=`), which the web UI picks up once from `/?token=<token>` and persists. The daemon gains a `token` option enforcing this.
+
+### Patch Changes
+
+- Updated dependencies [aed5e77]
+- Updated dependencies [6145c5a]
+  - attnbox-daemon@0.2.0
+
 ## 0.2.1
 
 ### Patch Changes

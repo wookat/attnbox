@@ -1,5 +1,15 @@
 # attnbox-daemon
 
+## 0.2.0
+
+### Minor Changes
+
+- 6145c5a: `attnbox --host <addr>` (env `ATTNBOX_HOST`) opens the inbox to other devices — e.g. install the PWA on your phone. Non-loopback binds refuse to start without `ATTNBOX_TOKEN`; every `/api/*` request then requires the token (Bearer header or `?token=`), which the web UI picks up once from `/?token=<token>` and persists. The daemon gains a `token` option enforcing this.
+
+### Patch Changes
+
+- aed5e77: `POST /api/ack` now rejects oversized bodies (413, 64 KiB cap), non-timestamp `at` values (400), and ids not present in the current snapshot (404) — arbitrary local input can no longer grow `~/.attnbox/acked.json` without bound. Un-acking (`at: null`) still works for vanished ids so stale entries remain removable.
+
 ## 0.1.2
 
 ### Patch Changes
