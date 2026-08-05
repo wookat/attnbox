@@ -20,7 +20,7 @@ Enable cloud collectors by exporting keys, e.g. `DEVIN_API_KEY=... npx attnbox`.
 
 `npx attnbox doctor` shows which collectors are active and how to upgrade each one to authoritative status.
 
-Optional: `npx attnbox hooks` prints config snippets that upgrade Claude Code (via `~/.claude/settings.json` hooks) and Codex CLI (via `~/.codex/hooks.json` lifecycle hooks — including authoritative waiting-for-approval — with the `notify` line in `~/.codex/config.toml` as fallback) from heuristic to authoritative status.
+Optional: `npx attnbox hooks --install` idempotently merges the authoritative-mode hooks into your existing configs (originals backed up as `*.attnbox-bak`); `npx attnbox hooks` prints config snippets that upgrade Claude Code (via `~/.claude/settings.json` hooks) and Codex CLI (via `~/.codex/hooks.json` lifecycle hooks — including authoritative waiting-for-approval — with the `notify` line in `~/.codex/config.toml` as fallback) from heuristic to authoritative status.
 
 ## Status model
 

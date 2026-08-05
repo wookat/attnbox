@@ -48,7 +48,7 @@ export async function runDoctor(opts: DoctorEnv = {}): Promise<DoctorCheck[]> {
     detail: existsSync(claudeDir)
       ? claudeHooked
         ? "sessions found, hooks installed (authoritative)"
-        : "sessions found, heuristic only — run `attnbox hooks` to upgrade"
+        : "sessions found, heuristic only — run `attnbox hooks --install` to upgrade"
       : "no ~/.claude/projects — collector inactive"
   });
 
@@ -63,7 +63,7 @@ export async function runDoctor(opts: DoctorEnv = {}): Promise<DoctorCheck[]> {
         ? "sessions found, hooks.json installed (authoritative waiting/approve)"
         : codexNotify
           ? "sessions found, notify fallback (turn-complete only) — see `attnbox hooks`"
-          : "sessions found, heuristic only — run `attnbox hooks` to upgrade"
+          : "sessions found, heuristic only — run `attnbox hooks --install` to upgrade"
       : "no ~/.codex/sessions — collector inactive"
   });
 

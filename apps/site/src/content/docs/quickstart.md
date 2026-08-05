@@ -31,7 +31,8 @@ Open the inbox in your mobile browser (e.g. via Tailscale or any tunnel to your 
 
 ```text
 attnbox --port <n>   # default 4820 (env ATTNBOX_PORT)
-attnbox hooks        # print authoritative-mode config snippets
+attnbox hooks --install  # one-command authoritative-mode setup (backups kept)
+attnbox hooks        # print authoritative-mode config snippets instead
 attnbox doctor       # check which collectors are active and how to upgrade
 attnbox --help
 ```

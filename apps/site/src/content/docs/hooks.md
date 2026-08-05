@@ -3,11 +3,13 @@ title: Authoritative hooks
 description: Upgrade Claude Code and Codex CLI from heuristic to authoritative status.
 ---
 
-By default, local agent status is inferred from their session logs — good, but heuristic. Both Claude Code and Codex CLI can *tell* attnbox their state directly. Print the ready-made snippets:
+By default, local agent status is inferred from their session logs — good, but heuristic. Both Claude Code and Codex CLI can *tell* attnbox their state directly. One command sets it all up:
 
 ```bash
-npx attnbox hooks
+npx attnbox hooks --install   # idempotent; originals backed up as *.attnbox-bak
 ```
+
+It merges the hooks into your existing configs without touching anything else, skips agents that aren't installed, and refuses (rather than overwrites) a config it can't parse. Restart your agent sessions afterwards and run `npx attnbox doctor` to verify. Prefer to review first? `npx attnbox hooks` prints the snippets for manual merging:
 
 ## Claude Code
 
