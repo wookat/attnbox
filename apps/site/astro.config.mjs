@@ -15,7 +15,8 @@ export default defineConfig({
         { label: "Quick start", slug: "quickstart" },
         { label: "Using the inbox", slug: "inbox" },
         { label: "Sources & honest limits", slug: "limits" },
-        { label: "Authoritative hooks", slug: "hooks" }
+        { label: "Authoritative hooks", slug: "hooks" },
+        { label: "Troubleshooting with doctor", slug: "doctor" }
       ],
       customCss: ["./src/styles/custom.css"]
     })
