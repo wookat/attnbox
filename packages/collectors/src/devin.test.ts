@@ -49,6 +49,16 @@ describe("DevinCollector", () => {
     expect(items[0]?.status).toBe("working");
   });
 
+  it("falls back to the coarse status field when status_enum is null", async () => {
+    const collector = new DevinCollector(
+      "key",
+      "https://api.devin.ai/v1",
+      fakeFetch({ sessions: [{ session_id: "devin-abc", status_enum: null, status: "running" }] })
+    );
+    const items = await collector.collect();
+    expect(items[0]?.status).toBe("working");
+  });
+
   it("returns empty on HTTP errors and network failures", async () => {
     expect(await new DevinCollector("k", "u", fakeFetch({}, false)).collect()).toEqual([]);
     const throwing = (async () => {

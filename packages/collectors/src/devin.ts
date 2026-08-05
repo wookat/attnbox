@@ -41,13 +41,14 @@ export class DevinCollector implements Collector {
 interface DevinSession {
   session_id: string;
   title?: string;
-  status_enum?: string;
+  status_enum?: string | null;
+  status?: string;
   updated_at?: string;
   pull_request?: { url?: string } | null;
 }
 
 function toItem(session: DevinSession): AttentionItem {
-  const status = mapStatus(session.status_enum);
+  const status = mapStatus(session.status_enum ?? session.status);
   const url = session.pull_request?.url ?? sessionUrl(session.session_id);
   const item: AttentionItem = {
     id: `devin:${session.session_id}`,
@@ -68,6 +69,7 @@ export function mapStatus(statusEnum: string | undefined): SessionStatus {
     case "blocked":
       return "waiting";
     case "working":
+    case "running":
       return "working";
     case "finished":
     case "expired":

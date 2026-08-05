@@ -75,6 +75,15 @@ export default function App() {
   );
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [acked, setAcked] = useState<Record<string, string>>(() => {
+    try {
+      return JSON.parse(localStorage.getItem("attnbox:acked") ?? "{}") as Record<string, string>;
+    } catch {
+      return {};
+    }
+  });
+  const [grouped, setGrouped] = useState(() => localStorage.getItem("attnbox:group") === "on");
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
 
@@ -84,7 +93,7 @@ export default function App() {
     seenWaiting.current = waitingIds;
     if (!prev || !notify || Notification.permission !== "granted") return;
     for (const item of data.items) {
-      if (item.status !== "waiting" || prev.has(item.id)) continue;
+      if (item.status !== "waiting" || prev.has(item.id) || isAcked(item)) continue;
       const label = item.attention ? ATTENTION_LABEL[item.attention] : "needs you";
       const n = new Notification(`${item.agent}: ${label}`, { body: item.title, icon: "/icon-192.png", tag: item.id });
       if (item.url) n.onclick = () => window.open(item.url, "_blank");
@@ -110,8 +119,33 @@ export default function App() {
   }, [filter]);
 
   useEffect(() => {
-    document.title = data.summary.waiting > 0 ? `(${data.summary.waiting}) attnbox` : "attnbox — agent attention inbox";
-  }, [data.summary.waiting]);
+    localStorage.setItem("attnbox:acked", JSON.stringify(acked));
+  }, [acked]);
+
+  useEffect(() => {
+    localStorage.setItem("attnbox:group", grouped ? "on" : "off");
+  }, [grouped]);
+
+  function isAcked(item: AttentionItem): boolean {
+    const at = acked[item.id];
+    if (!at) return false;
+    return !item.lastActivityAt || item.lastActivityAt <= at;
+  }
+
+  function toggleAck(item: AttentionItem): void {
+    setAcked((prev) => {
+      const next = { ...prev };
+      if (isAcked(item)) delete next[item.id];
+      else next[item.id] = item.lastActivityAt ?? new Date().toISOString();
+      return next;
+    });
+  }
+
+  const unackedWaiting = data.items.filter((i) => i.status === "waiting" && !isAcked(i)).length;
+
+  useEffect(() => {
+    document.title = unackedWaiting > 0 ? `(${unackedWaiting}) attnbox` : "attnbox — agent attention inbox";
+  }, [unackedWaiting]);
 
   useEffect(() => {
     const source = new EventSource("/api/events");
@@ -125,9 +159,19 @@ export default function App() {
     () => data.items.filter((i) => matches(i, filter) && matchesQuery(i, query)),
     [data.items, filter, query]
   );
-  const waiting = visible.filter((i) => i.status === "waiting");
-  const rest = visible.filter((i) => i.status !== "waiting");
-  const ordered = useMemo(() => visible.slice().sort((a, b) => (a.status === "waiting" ? 0 : 1) - (b.status === "waiting" ? 0 : 1)), [visible]);
+  const waiting = visible.filter((i) => i.status === "waiting" && !isAcked(i));
+  const rest = visible.filter((i) => i.status !== "waiting" || isAcked(i));
+  const ordered = useMemo(() => [...waiting, ...rest], [visible, acked]);
+  const groups = useMemo(() => {
+    const map = new Map<string, AttentionItem[]>();
+    for (const item of rest) {
+      const key = item.project ?? `(${item.agent})`;
+      const list = map.get(key);
+      if (list) list.push(item);
+      else map.set(key, [item]);
+    }
+    return [...map.entries()];
+  }, [visible, acked]);
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -167,11 +211,16 @@ export default function App() {
       if (e.key === "Enter" && selectedId) {
         const item = ordered.find((i) => i.id === selectedId);
         if (item?.url) window.open(item.url, "_blank");
+        return;
+      }
+      if (e.key === "e" && selectedId) {
+        const item = ordered.find((i) => i.id === selectedId);
+        if (item?.status === "waiting") toggleAck(item);
       }
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [ordered, selectedId]);
+  }, [ordered, selectedId, acked]);
 
   return (
     <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">
@@ -216,10 +265,10 @@ export default function App() {
       <main className="mx-auto max-w-3xl px-4 py-5 sm:py-8">
         <section className="mb-5">
           <p className="text-lg font-medium sm:text-xl">
-            {data.summary.waiting > 0 ? (
+            {unackedWaiting > 0 ? (
               <>
-                <span className="text-amber-300">{data.summary.waiting}</span> agent
-                {data.summary.waiting > 1 ? "s are" : " is"} waiting on you
+                <span className="text-amber-300">{unackedWaiting}</span> agent
+                {unackedWaiting > 1 ? "s are" : " is"} waiting on you
               </>
             ) : (
               <span className="text-zinc-300">No one is waiting on you 🎉</span>
@@ -252,13 +301,23 @@ export default function App() {
               }`}
             >
               {label}
-              {key === "waiting" && data.summary.waiting > 0 && (
+              {key === "waiting" && unackedWaiting > 0 && (
                 <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-300">
-                  {data.summary.waiting}
+                  {unackedWaiting}
                 </span>
               )}
             </button>
           ))}
+          <button
+            onClick={() => setGrouped((g) => !g)}
+            aria-pressed={grouped}
+            title="Group by project"
+            className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-colors ${
+              grouped ? "bg-zinc-100 font-medium text-zinc-900" : "text-zinc-400 hover:text-zinc-200"
+            }`}
+          >
+            ⊞
+          </button>
         </nav>
 
         {waiting.length > 0 && (
@@ -266,7 +325,7 @@ export default function App() {
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
             <ul className="space-y-2">
               {waiting.map((item) => (
-                <ItemRow key={item.id} item={item} highlight selected={item.id === selectedId} />
+                <ItemRow key={item.id} item={item} highlight selected={item.id === selectedId} onAck={() => toggleAck(item)} />
               ))}
             </ul>
           </section>
@@ -288,10 +347,39 @@ export default function App() {
                     : "No sessions match this filter."}
               </p>
             </div>
+          ) : grouped ? (
+            <div className="space-y-4">
+              {groups.map(([name, items]) => (
+                <div key={name}>
+                  <button
+                    onClick={() =>
+                      setCollapsed((prev) => {
+                        const next = new Set(prev);
+                        if (next.has(name)) next.delete(name);
+                        else next.add(name);
+                        return next;
+                      })
+                    }
+                    className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-400 hover:text-zinc-200"
+                  >
+                    <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
+                    <span className="truncate">{name}</span>
+                    <span className="text-zinc-600">{items.length}</span>
+                  </button>
+                  {!collapsed.has(name) && (
+                    <ul className="space-y-2">
+                      {items.map((item) => (
+                        <ItemRow key={item.id} item={item} selected={item.id === selectedId} dimmed={isAcked(item)} onAck={item.status === "waiting" ? () => toggleAck(item) : undefined} />
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ))}
+            </div>
           ) : (
             <ul className="space-y-2">
               {rest.map((item) => (
-                <ItemRow key={item.id} item={item} selected={item.id === selectedId} />
+                <ItemRow key={item.id} item={item} selected={item.id === selectedId} dimmed={isAcked(item)} onAck={item.status === "waiting" ? () => toggleAck(item) : undefined} />
               ))}
             </ul>
           )}
@@ -311,11 +399,15 @@ export default function App() {
 function ItemRow({
   item,
   highlight = false,
-  selected = false
+  selected = false,
+  dimmed = false,
+  onAck
 }: {
   item: AttentionItem;
   highlight?: boolean;
   selected?: boolean;
+  dimmed?: boolean;
+  onAck?: (() => void) | undefined;
 }) {
   const style = STATUS_STYLE[item.status];
   const agentStyle = AGENT_STYLE[item.agent] ?? "bg-zinc-500/15 text-zinc-300 border-zinc-500/20";
@@ -323,7 +415,9 @@ function ItemRow({
     <div
       className={`flex items-start gap-3 rounded-xl border p-3 transition-colors sm:p-4 ${
         highlight ? "border-amber-900/60 bg-amber-950/20" : "border-zinc-800 bg-zinc-900/40"
-      } ${item.url ? "hover:border-zinc-600 active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-400/70" : ""}`}
+      } ${item.url ? "hover:border-zinc-600 active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-400/70" : ""} ${
+        dimmed ? "opacity-50" : ""
+      }`}
     >
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
       <div className="min-w-0 flex-1">
@@ -339,6 +433,20 @@ function ItemRow({
         </p>
         {item.project && <p className="mt-1 truncate text-[11px] text-zinc-600">{item.project}</p>}
       </div>
+      {onAck && (
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onAck();
+          }}
+          title={dimmed ? "Mark as unhandled" : "Mark as handled (e)"}
+          aria-label={dimmed ? "Mark as unhandled" : "Mark as handled"}
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-500 transition-colors hover:border-emerald-700 hover:text-emerald-300"
+        >
+          ✓
+        </button>
+      )}
       {item.url && <span className="mt-1 text-zinc-600">↗</span>}
     </div>
   );
