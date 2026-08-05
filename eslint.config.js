@@ -14,7 +14,7 @@ export default tseslint.config(
     }
   },
   {
-    files: ["packages/cli/src/**", "packages/cli/scripts/**"],
+    files: ["packages/cli/src/**", "packages/cli/scripts/**", "scripts/**"],
     languageOptions: { globals: globals.node },
     rules: { "no-console": "off" }
   },
