@@ -13,6 +13,7 @@ import {
 import { createDaemon, listen } from "attnbox-daemon";
 import { sortItems, summarize } from "attnbox-core";
 import { formatList } from "./format.js";
+import { formatDoctor, runDoctor } from "./doctor.js";
 
 const HELP = `attnbox — unified attention inbox for your AI coding agents
 
@@ -22,6 +23,7 @@ Usage:
                      (--waiting: only items waiting on you; --json: machine output)
   attnbox hooks      Print the config snippets enabling authoritative status
                      via Claude Code hooks and the Codex notify hook
+  attnbox doctor     Check which collectors are active and how to upgrade them
   attnbox hook claude   (used by Claude hooks) record a hook event from stdin
   attnbox hook codex    (used by Codex hooks/notify) record a lifecycle event
   attnbox --help     Show this help
@@ -47,6 +49,13 @@ async function main(): Promise<void> {
   const args = process.argv.slice(2);
   if (args.includes("--help") || args.includes("-h")) {
     console.log(HELP);
+    return;
+  }
+
+  if (args[0] === "doctor") {
+    const checks = await runDoctor();
+    console.log(formatDoctor(checks));
+    if (checks.some((c) => c.level === "warn")) process.exitCode = 1;
     return;
   }
 
@@ -81,7 +90,7 @@ async function main(): Promise<void> {
     return;
   }
 
-  const known = new Set(["ls", "hooks", "hook", undefined]);
+  const known = new Set(["ls", "hooks", "hook", "doctor", undefined]);
   if (!known.has(args[0]) && !args[0]?.startsWith("--")) {
     console.error(`attnbox: unknown command "${args[0]}" — run \`attnbox --help\``);
     process.exitCode = 1;
