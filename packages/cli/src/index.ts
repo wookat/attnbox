@@ -15,6 +15,7 @@ import { createDaemon, listen, type ReplyResult } from "attnbox-daemon";
 import { sortItems, summarize } from "attnbox-core";
 import { formatList } from "./format.js";
 import { formatDoctor, runDoctor } from "./doctor.js";
+import { formatInstall, installHooks } from "./hooksInstall.js";
 
 const HELP = `attnbox — unified attention inbox for your AI coding agents
 
@@ -24,6 +25,7 @@ Usage:
                      (--waiting: only items waiting on you; --json: machine output)
   attnbox hooks      Print the config snippets enabling authoritative status
                      via Claude Code hooks and the Codex notify hook
+                     (--install: merge them into your configs, with backups)
   attnbox doctor     Check which collectors are active and how to upgrade them
   attnbox hook claude   (used by Claude hooks) record a hook event from stdin
   attnbox hook codex    (used by Codex hooks/notify) record a lifecycle event
@@ -57,6 +59,16 @@ async function main(): Promise<void> {
     const checks = await runDoctor();
     console.log(formatDoctor(checks));
     if (checks.some((c) => c.level === "warn")) process.exitCode = 1;
+    return;
+  }
+
+  if (args[0] === "hooks" && args.includes("--install")) {
+    const results = installHooks();
+    console.log(formatInstall(results));
+    if (results.some((r) => r.level === "error")) process.exitCode = 1;
+    else if (results.some((r) => r.level === "installed")) {
+      console.log("\nRestart your agent sessions to pick up the hooks, then run `attnbox doctor` to verify.");
+    }
     return;
   }
 
