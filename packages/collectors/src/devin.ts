@@ -10,6 +10,7 @@ import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
  */
 export class DevinCollector implements Collector {
   readonly name = "devin";
+  private readonly detailCache = new Map<string, { updatedAt: string; detail: string | undefined }>();
 
   constructor(
     private readonly apiKey: string,
@@ -34,7 +35,50 @@ export class DevinCollector implements Collector {
     }
 
     const body = (await response.json()) as { sessions?: DevinSession[] };
-    return (body.sessions ?? []).map((s) => toItem(s));
+    const sessions = body.sessions ?? [];
+    const items = sessions.map((s) => toItem(s));
+    await this.attachDetails(sessions, items);
+    return items;
+  }
+
+  /** For waiting sessions, fetch what Devin is actually asking (cached by updated_at). */
+  private async attachDetails(sessions: DevinSession[], items: AttentionItem[]): Promise<void> {
+    const waiting = items
+      .map((item, i) => ({ item, session: sessions[i] }))
+      .filter((x): x is { item: AttentionItem; session: DevinSession } => x.item.status === "waiting" && x.session !== undefined);
+    for (const id of [...this.detailCache.keys()]) {
+      if (!waiting.some((w) => w.session.session_id === id)) this.detailCache.delete(id);
+    }
+    await Promise.all(
+      waiting.map(async ({ item, session }) => {
+        const key = session.session_id;
+        const updatedAt = session.updated_at ?? "";
+        const cached = this.detailCache.get(key);
+        if (cached && cached.updatedAt === updatedAt) {
+          if (cached.detail !== undefined) item.detail = cached.detail;
+          return;
+        }
+        const detail = await this.fetchDetail(key);
+        this.detailCache.set(key, { updatedAt, detail });
+        if (detail !== undefined) item.detail = detail;
+      })
+    );
+  }
+
+  private async fetchDetail(sessionId: string): Promise<string | undefined> {
+    try {
+      const res = await this.fetchImpl(`${this.baseUrl}/session/${sessionId}`, {
+        headers: { Authorization: `Bearer ${this.apiKey}` }
+      });
+      if (!res.ok) return undefined;
+      const body = (await res.json()) as { messages?: { type?: string; message?: string }[] };
+      const last = (body.messages ?? []).filter((m) => m.type === "devin_message" && typeof m.message === "string").pop();
+      if (!last?.message) return undefined;
+      const text = last.message.replace(/\s+/g, " ").trim();
+      return text.length > 280 ? `${text.slice(0, 279)}…` : text;
+    } catch {
+      return undefined;
+    }
   }
 }
 

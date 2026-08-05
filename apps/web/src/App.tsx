@@ -573,6 +573,11 @@ function ItemRow({
           )}
           {item.lastActivityAt && <span>{timeAgo(item.lastActivityAt)}</span>}
         </p>
+        {item.detail && (
+          <p className="mt-1 line-clamp-2 text-xs text-zinc-400" title={item.detail}>
+            {item.detail}
+          </p>
+        )}
         {item.project && <p className="mt-1 truncate text-[11px] text-zinc-600">{item.project}</p>}
         {replying && onReplyToggle && (
           <ReplyBox item={item} onSent={() => onReplied?.()} onClose={onReplyToggle} />

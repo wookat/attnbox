@@ -38,6 +38,59 @@ describe("DevinCollector", () => {
     });
   });
 
+  it("attaches what the agent is asking to waiting items, cached by updated_at", async () => {
+    const calls: string[] = [];
+    const routed = (async (url: RequestInfo | URL) => {
+      const u = String(url);
+      calls.push(u);
+      if (u.includes("/sessions")) {
+        return {
+          ok: true,
+          json: async () => ({
+            sessions: [
+              { session_id: "devin-a", status_enum: "blocked", updated_at: "t1" },
+              { session_id: "devin-b", status_enum: "working", updated_at: "t1" }
+            ]
+          })
+        } as Response;
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          messages: [
+            { type: "user_message", message: "go" },
+            { type: "devin_message", message: "  Should I  merge\nthe PR? " }
+          ]
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", routed);
+
+    const first = await collector.collect();
+    expect(first[0]?.detail).toBe("Should I merge the PR?");
+    expect(first[1]?.detail).toBeUndefined();
+    expect(calls.filter((c) => c.includes("/session/devin-a")).length).toBe(1);
+
+    const second = await collector.collect();
+    expect(second[0]?.detail).toBe("Should I merge the PR?");
+    expect(calls.filter((c) => c.includes("/session/devin-a")).length).toBe(1);
+  });
+
+  it("degrades silently when the detail fetch fails", async () => {
+    const routed = (async (url: RequestInfo | URL) => {
+      if (String(url).includes("/sessions")) {
+        return {
+          ok: true,
+          json: async () => ({ sessions: [{ session_id: "devin-a", status_enum: "blocked", updated_at: "t1" }] })
+        } as Response;
+      }
+      throw new Error("network");
+    }) as typeof fetch;
+    const items = await new DevinCollector("key", "https://api.devin.ai/v1", routed).collect();
+    expect(items[0]?.status).toBe("waiting");
+    expect(items[0]?.detail).toBeUndefined();
+  });
+
   it("falls back to the session URL when there is no PR", async () => {
     const collector = new DevinCollector(
       "key",

@@ -20,6 +20,14 @@ describe("formatItem", () => {
     expect(line).toContain("[approve]");
     expect(line).toContain("Fix the login bug");
   });
+
+  it("renders the agent's question as an indented detail line, truncated", () => {
+    const out = formatItem({ ...item, detail: "Should I merge the PR?" });
+    expect(out).toContain("\n  └ Should I merge the PR?");
+    const long = formatItem({ ...item, detail: "x".repeat(150) });
+    expect(long.split("\n")[1]).toHaveLength(104);
+    expect(long).toContain("…");
+  });
 });
 
 describe("formatList", () => {
