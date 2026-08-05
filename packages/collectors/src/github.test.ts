@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { GithubReviewCollector } from "./github.js";
 
 function fakeFetch(body: unknown, ok = true): typeof fetch {
@@ -41,6 +41,12 @@ describe("GithubReviewCollector", () => {
 
   it("returns empty on HTTP errors and network failures", async () => {
     expect(await new GithubReviewCollector("t", "u", fakeFetch({}, false)).collect()).toEqual([]);
+    const unauthorized = (async () => ({ ok: false, status: 401 }) as Response) as typeof fetch;
+    const errors: string[] = [];
+    const spy = vi.spyOn(console, "error").mockImplementation((msg: string) => void errors.push(msg));
+    expect(await new GithubReviewCollector("bad", "u", unauthorized).collect()).toEqual([]);
+    spy.mockRestore();
+    expect(errors.join("\n")).toContain("check ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN");
     const throwing = (async () => {
       throw new Error("network");
     }) as unknown as typeof fetch;

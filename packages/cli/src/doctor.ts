@@ -98,11 +98,25 @@ export async function runDoctor(opts: DoctorEnv = {}): Promise<DoctorCheck[]> {
   }
 
   const ghToken = env["ATTNBOX_GITHUB_TOKEN"] ?? env["GITHUB_TOKEN"];
-  checks.push({
-    name: "github-pr",
-    level: ghToken ? "ok" : "off",
-    detail: ghToken ? "token set — review-requested fallback active" : "no ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN — fallback inactive"
-  });
+  if (!ghToken) {
+    checks.push({ name: "github-pr", level: "off", detail: "no ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN — fallback inactive" });
+  } else {
+    let level: CheckLevel = "ok";
+    let detail = "token valid — review-requested fallback active";
+    try {
+      const res = await fetchImpl("https://api.github.com/user", {
+        headers: { Authorization: `Bearer ${ghToken}`, Accept: "application/vnd.github+json" }
+      });
+      if (!res.ok) {
+        level = "warn";
+        detail = `API returned HTTP ${res.status} — check ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN`;
+      }
+    } catch {
+      level = "warn";
+      detail = "API unreachable (network?) — review-requested fallback degraded";
+    }
+    checks.push({ name: "github-pr", level, detail });
+  }
 
   return checks;
 }
