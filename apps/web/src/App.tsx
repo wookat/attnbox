@@ -273,7 +273,6 @@ export default function App() {
   const active = collapseFinished ? rest.filter((i) => !isFinished(i)) : rest;
   const finished = collapseFinished ? rest.filter(isFinished) : [];
   const listed = showFinished || !collapseFinished ? rest : active;
-  const ordered = useMemo(() => [...waiting, ...listed], [visible, acked, listed]);
   const groups = useMemo(() => {
     const map = new Map<string, AttentionItem[]>();
     for (const item of rest) {
@@ -290,6 +289,14 @@ export default function App() {
       return activeCount(bItems) - activeCount(aItems) || aName.localeCompare(bName);
     });
   }, [visible, acked]);
+  // keyboard order must mirror what's on screen: grouped view walks groups top to bottom, skipping collapsed ones
+  const ordered = useMemo(
+    () =>
+      grouped
+        ? [...waiting, ...groups.flatMap(([name, items]) => (collapsed.has(name) ? [] : items))]
+        : [...waiting, ...listed],
+    [visible, acked, listed, grouped, groups, collapsed]
+  );
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
