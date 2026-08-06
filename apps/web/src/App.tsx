@@ -106,6 +106,10 @@ export default function App() {
   const [showFinished, setShowFinished] = useState(false);
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem("attnbox:theme");
+    return saved === "light" || saved === "dark" ? saved : "system";
+  });
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
@@ -154,6 +158,20 @@ export default function App() {
       setNotify(true);
     }
   }
+
+  useEffect(() => {
+    localStorage.setItem("attnbox:theme", theme);
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const apply = (): void => {
+      const dark = theme === "dark" || (theme === "system" && mq.matches);
+      document.documentElement.classList.toggle("dark", dark);
+      document.querySelector('meta[name="theme-color"]')?.setAttribute("content", dark ? "#09090b" : "#ffffff");
+    };
+    apply();
+    if (theme !== "system") return;
+    mq.addEventListener("change", apply);
+    return () => mq.removeEventListener("change", apply);
+  }, [theme]);
 
   useEffect(() => {
     localStorage.setItem("attnbox:filter", filter);
@@ -341,6 +359,14 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => setTheme((t) => THEME_NEXT[t])}
+              title={THEME_TITLE[theme]}
+              aria-label={THEME_TITLE[theme]}
+              className="grid size-8 place-items-center rounded-full border border-zinc-300 text-sm text-zinc-600 hover:text-zinc-900 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+            >
+              {THEME_ICON[theme]}
+            </button>
             {notificationsSupported() && (
               <button
                 onClick={() => void toggleNotify()}
@@ -582,6 +608,16 @@ export default function App() {
     </div>
   );
 }
+
+type Theme = "system" | "light" | "dark";
+
+const THEME_NEXT: Record<Theme, Theme> = { system: "light", light: "dark", dark: "system" };
+const THEME_ICON: Record<Theme, string> = { system: "◐", light: "☀", dark: "☾" };
+const THEME_TITLE: Record<Theme, string> = {
+  system: "Theme: system — click for light",
+  light: "Theme: light — click for dark",
+  dark: "Theme: dark — click for system"
+};
 
 const SHORTCUTS: [string, string][] = [
   ["j / ↓", "Next item"],
