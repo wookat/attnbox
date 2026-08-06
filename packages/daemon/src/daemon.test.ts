@@ -101,6 +101,41 @@ describe("daemon", () => {
     await new Promise<void>((resolve) => hook.close(() => resolve()));
   });
 
+  it("does not re-fire webhooks when a collector outage makes waiting items vanish and reappear", async () => {
+    const received: unknown[] = [];
+    const hook = createServer((req, res) => {
+      const chunks: Buffer[] = [];
+      req.on("data", (c: Buffer) => chunks.push(c));
+      req.on("end", () => {
+        received.push(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+        res.end();
+      });
+    });
+    await new Promise<void>((resolve) => hook.listen(0, "127.0.0.1", resolve));
+    const addr = hook.address();
+    const hookUrl = `http://127.0.0.1:${typeof addr === "object" && addr !== null ? addr.port : 0}/`;
+
+    let items: AttentionItem[] = [waitingItem];
+    const collector: Collector = { name: "stub", collect: async () => items };
+    daemon = createDaemon({ collectors: [collector], intervalMs: 60_000, webhookUrl: hookUrl });
+    await daemon.ready;
+
+    items = []; // outage: everything vanishes
+    await daemon.refresh();
+    items = [waitingItem]; // recovery: same item is back, still waiting
+    await daemon.refresh();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(received).toHaveLength(0);
+
+    items = [{ ...waitingItem, status: "done" }]; // observed leaving waiting
+    await daemon.refresh();
+    items = [waitingItem]; // a genuine new waiting transition
+    await daemon.refresh();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(received).toHaveLength(1);
+    await new Promise<void>((resolve) => hook.close(() => resolve()));
+  });
+
   it("survives a collector that throws", async () => {
     const throwing: Collector = {
       name: "boom",
