@@ -71,21 +71,30 @@ export function createDaemon(options: DaemonOptions): Daemon {
   let waitingSeen: Set<string> | undefined;
 
   function fireWebhooks(next: AttentionItem[]): void {
-    const nowWaiting = new Set(next.filter((i) => i.status === "waiting").map((i) => i.id));
-    // the first pass only records state — items already waiting at startup are not "new"
-    if (options.webhookUrl !== undefined && waitingSeen !== undefined) {
-      for (const item of next) {
-        if (item.status === "waiting" && !waitingSeen.has(item.id)) {
-          void fetch(options.webhookUrl, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ event: "waiting", item }),
-            signal: AbortSignal.timeout(5000)
-          }).catch(() => undefined);
-        }
+    // An id leaves the set only when observed in a non-waiting status, not when
+    // it is merely absent from a pass — a collector outage making items vanish
+    // and reappear must not re-fire every waiting item at the endpoint.
+    if (waitingSeen === undefined) {
+      // the first pass only records state — items already waiting at startup are not "new"
+      waitingSeen = new Set(next.filter((i) => i.status === "waiting").map((i) => i.id));
+      return;
+    }
+    for (const item of next) {
+      if (item.status !== "waiting") {
+        waitingSeen.delete(item.id);
+        continue;
+      }
+      if (waitingSeen.has(item.id)) continue;
+      waitingSeen.add(item.id);
+      if (options.webhookUrl !== undefined) {
+        void fetch(options.webhookUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ event: "waiting", item }),
+          signal: AbortSignal.timeout(5000)
+        }).catch(() => undefined);
       }
     }
-    waitingSeen = nowWaiting;
   }
 
   async function refresh(): Promise<AttentionItem[]> {
