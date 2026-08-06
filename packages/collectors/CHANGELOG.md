@@ -1,5 +1,11 @@
 # attnbox-collectors
 
+## 0.2.4
+
+### Patch Changes
+
+- b23580e: Devin collector fetches deep session pages in one parallel round-trip instead of sequentially — `attnbox ls` on a 1,000-session org drops from ~5.9s to ~3s.
+
 ## 0.2.3
 
 ### Patch Changes

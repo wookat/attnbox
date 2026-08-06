@@ -1,5 +1,15 @@
 # attnbox
 
+## 0.3.8
+
+### Patch Changes
+
+- 6f285d9: Grouped view: collapsed groups now persist across reloads (localStorage), which matters at real scale (65 project groups).
+- 1efcd1f: Grouped view: group headers meet the WCAG 2.2 minimum tap target size (16px → 28px tall), which matters on phones with many project groups.
+- Updated dependencies [b23580e]
+  - attnbox-collectors@0.2.4
+  - attnbox-daemon@0.2.4
+
 ## 0.3.7
 
 ### Patch Changes
