@@ -82,6 +82,7 @@ function notificationsSupported(): boolean {
 
 export default function App() {
   const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
+  const [loaded, setLoaded] = useState(false);
   const [connected, setConnected] = useState(false);
   const everConnected = useRef(false);
   const [filter, setFilter] = useState<Filter>(() => {
@@ -210,7 +211,10 @@ export default function App() {
       setConnected(true);
     };
     source.onerror = () => setConnected(false);
-    source.onmessage = (e) => setData(JSON.parse(e.data as string) as Payload);
+    source.onmessage = (e) => {
+      setData(JSON.parse(e.data as string) as Payload);
+      setLoaded(true);
+    };
     return () => source.close();
   }, []);
 
@@ -354,7 +358,9 @@ export default function App() {
       <main className="mx-auto max-w-3xl px-4 py-5 sm:py-8">
         <section className="mb-5">
           <p className="text-lg font-medium sm:text-xl">
-            {unackedWaiting > 0 ? (
+            {!loaded ? (
+              <span className="text-zinc-400">Checking your agents…</span>
+            ) : unackedWaiting > 0 ? (
               <>
                 <span className="text-amber-300">{unackedWaiting}</span> agent
                 {unackedWaiting > 1 ? "s are" : " is"} waiting on you
@@ -364,7 +370,7 @@ export default function App() {
             )}
           </p>
           <p className="text-sm text-zinc-400">
-            {data.summary.working} working · {data.summary.total} sessions tracked
+            {loaded ? `${data.summary.working} working · ${data.summary.total} sessions tracked` : "\u00a0"}
           </p>
         </section>
 
@@ -438,7 +444,17 @@ export default function App() {
           {waiting.length > 0 && rest.length > 0 && (
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-400">Everything else</h2>
           )}
-          {visible.length === 0 ? (
+          {!loaded && data.items.length === 0 ? (
+            <ul className="space-y-2" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4">
+                  <div className="h-4 w-2/3 rounded bg-zinc-800" />
+                  <div className="mt-2 h-3 w-1/3 rounded bg-zinc-800/80" />
+                  <div className="mt-2 h-3 w-5/6 rounded bg-zinc-800/60" />
+                </li>
+              ))}
+            </ul>
+          ) : visible.length === 0 ? (
             data.items.length === 0 && filter === "all" && query === "" ? (
               <div className="rounded-2xl border border-dashed border-zinc-800 p-8">
                 <p className="text-center text-2xl">📭</p>

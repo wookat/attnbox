@@ -1,4 +1,4 @@
-import { mkdtempSync } from "node:fs";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -203,6 +203,22 @@ describe("daemon", () => {
     expect(ack.status).toBe(200);
     // static shell stays open — the token arrives via /?token= in the first place
     expect((await fetch(`http://127.0.0.1:${port}/`)).status).toBe(200);
+  });
+
+  it("serves hashed assets as immutable and everything else as no-cache", async () => {
+    const webDist = mkdtempSync(join(tmpdir(), "attnbox-web-"));
+    mkdirSync(join(webDist, "assets"));
+    writeFileSync(join(webDist, "index.html"), "<!doctype html>attnbox");
+    writeFileSync(join(webDist, "assets", "index-abc123.js"), "console.log(1)");
+    daemon = createDaemon({ collectors: [], intervalMs: 60_000, webDist });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const asset = await fetch(`http://127.0.0.1:${port}/assets/index-abc123.js`);
+    expect(asset.headers.get("cache-control")).toBe("public, max-age=31536000, immutable");
+    const index = await fetch(`http://127.0.0.1:${port}/`);
+    expect(index.headers.get("cache-control")).toBe("no-cache");
+    const spa = await fetch(`http://127.0.0.1:${port}/some/route`);
+    expect(spa.headers.get("cache-control")).toBe("no-cache");
   });
 
   it("serves a fallback page when no web UI is built", async () => {
