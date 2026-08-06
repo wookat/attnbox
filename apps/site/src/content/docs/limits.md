@@ -23,6 +23,7 @@ General rules:
 - The only write attnbox performs is the explicit Devin reply action; there is no other outbound write anywhere.
 - A `working` item with no activity for 5 minutes is capped to `idle` (heuristic staleness guard).
 - Cloud collectors fail soft: an unreachable API never breaks the rest of the inbox.
+- The Devin sessions list is paginated up to 1,000 sessions; deeper pages refresh at most every 30 s, so changes on old sessions can lag up to 30 s.
 - Notifications fire only while the inbox is open somewhere (a tab or the installed PWA). There is deliberately **no push server** — Web Push would relay your agent activity through a third-party push service, which contradicts local-first. If nothing has the inbox open, nothing notifies; the items are still waiting when you return.
 
 The canonical, always-current version of this table lives in [docs/LIMITS.md](https://github.com/wookat/attnbox/blob/main/docs/LIMITS.md).
