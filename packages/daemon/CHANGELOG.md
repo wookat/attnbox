@@ -1,5 +1,13 @@
 # attnbox-daemon
 
+## 0.2.2
+
+### Patch Changes
+
+- Updated dependencies [8f4f118]
+- Updated dependencies [4b973c4]
+  - attnbox-collectors@0.2.2
+
 ## 0.2.1
 
 ### Patch Changes

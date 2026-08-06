@@ -1,5 +1,12 @@
 # attnbox-collectors
 
+## 0.2.2
+
+### Patch Changes
+
+- 8f4f118: Devin sessions with a pull request now carry the repo (owner/repo) as their project, so the grouped inbox view organizes cloud sessions by repository instead of one flat "devin" bucket.
+- 4b973c4: Waiting Devin sessions now link to the session (where the question can be answered) instead of the PR; non-waiting sessions still link PR-first.
+
 ## 0.2.1
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # attnbox
 
+## 0.3.5
+
+### Patch Changes
+
+- ac5756b: Grouped inbox view now sorts projects by active-session count (agent fallback buckets last) and group expanders expose aria-expanded.
+- 6323970: Inbox search now also matches what the agent is asking (the waiting-item preview), not just title/project/agent.
+- Updated dependencies [8f4f118]
+- Updated dependencies [4b973c4]
+  - attnbox-collectors@0.2.2
+  - attnbox-daemon@0.2.2
+
 ## 0.3.4
 
 ### Patch Changes
