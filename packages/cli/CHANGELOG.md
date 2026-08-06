@@ -1,5 +1,12 @@
 # attnbox
 
+## 0.4.2
+
+### Patch Changes
+
+- 9da6ffa: `attnbox ls` now prints the action URL under each waiting item (with the pull request as a secondary link when it differs) — terminal users get the same "click to go answer" affordance as the web inbox.
+- e001ce7: `attnbox doctor` now reports the waiting-webhook channel: off when `ATTNBOX_WEBHOOK_URL` is unset, the target origin+path when configured, and a warning when the value is not a valid URL (which would make every post silently fail).
+
 ## 0.4.1
 
 ### Patch Changes
