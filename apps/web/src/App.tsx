@@ -825,6 +825,20 @@ function ItemRow({
             <span title="status inferred from local logs, not reported by the agent">~heuristic</span>
           )}
           {item.lastActivityAt && <span>{timeAgo(item.lastActivityAt)}</span>}
+          {item.prUrl && (
+            // the whole card is already an <a>, so the secondary PR link must be a button (no nested anchors)
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(item.prUrl, "_blank", "noreferrer");
+              }}
+              aria-label="Open the pull request"
+              className="rounded border border-zinc-300 dark:border-zinc-700 px-1.5 py-0.5 text-zinc-700 dark:text-zinc-300 transition-colors hover:border-zinc-500 dark:hover:border-zinc-500"
+            >
+              PR ↗
+            </button>
+          )}
         </p>
         {item.detail ? (
           <p className="mt-1 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400" title={item.detail}>

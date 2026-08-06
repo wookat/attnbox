@@ -26,6 +26,8 @@ export interface AttentionItem {
   lastActivityAt?: string;
   /** Deep link to act on the item (console URL, PR URL, ...). */
   url?: string;
+  /** Pull request the session works on, when it differs from `url`. */
+  prUrl?: string;
   /** Short preview of what the agent is asking for, when status === "waiting". */
   detail?: string;
 }

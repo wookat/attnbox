@@ -35,6 +35,7 @@ describe("DevinCollector", () => {
       attention: "answer",
       confidence: "authoritative",
       url: "https://app.devin.ai/sessions/abc",
+      prUrl: "https://github.com/o/r/pull/1",
       project: "o/r"
     });
   });
@@ -51,6 +52,8 @@ describe("DevinCollector", () => {
     );
     const items = await collector.collect();
     expect(items[0]?.url).toBe("https://github.com/o/r/pull/1");
+    // the PR is already the primary link, so no separate secondary link
+    expect(items[0]?.prUrl).toBeUndefined();
   });
 
   it("paginates past the first 100 sessions until a short page", async () => {
