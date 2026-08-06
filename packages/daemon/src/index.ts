@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, extname, join, normalize } from "node:path";
+import { constants, createGzip, gzipSync } from "node:zlib";
 import { sortItems, summarize, type AttentionItem, type Collector } from "attnbox-core";
 
 export interface ReplyResult {
@@ -49,7 +50,7 @@ const MIME: Record<string, string> = {
 export function createDaemon(options: DaemonOptions): Daemon {
   const intervalMs = options.intervalMs ?? 3000;
   let snapshot: AttentionItem[] = [];
-  const sseClients = new Set<ServerResponse>();
+  const sseClients = new Set<SseClient>();
   const ackFile = options.ackFile ?? join(homedir(), ".attnbox", "acked.json");
   const acked: Record<string, string> = readAcked(ackFile);
 
@@ -110,20 +111,38 @@ export function createDaemon(options: DaemonOptions): Daemon {
       void handleAck(req, res);
       return;
     }
+    const acceptsGzip = /\bgzip\b/.test(String(req.headers["accept-encoding"] ?? ""));
     if (url.pathname === "/api/items") {
-      res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
-      res.end(payloadJson());
+      const body = payloadJson();
+      if (acceptsGzip) {
+        res.writeHead(200, { "content-type": "application/json; charset=utf-8", "content-encoding": "gzip" });
+        res.end(gzipSync(body));
+      } else {
+        res.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+        res.end(body);
+      }
       return;
     }
     if (url.pathname === "/api/events") {
       res.writeHead(200, {
         "content-type": "text/event-stream",
         "cache-control": "no-cache",
-        connection: "keep-alive"
+        connection: "keep-alive",
+        ...(acceptsGzip ? { "content-encoding": "gzip" } : {})
       });
-      res.write(`data: ${payloadJson()}\n\n`);
-      sseClients.add(res);
-      req.on("close", () => sseClients.delete(res));
+      let client: SseClient;
+      if (acceptsGzip) {
+        // snapshots are large and repetitive; a per-connection gzip stream with a sync
+        // flush per event cuts the wire cost ~10x while EventSource decodes transparently
+        const gz = createGzip({ flush: constants.Z_SYNC_FLUSH });
+        gz.pipe(res);
+        client = { write: (chunk) => void gz.write(chunk), end: () => gz.end() };
+      } else {
+        client = { write: (chunk) => void res.write(chunk), end: () => res.end() };
+      }
+      client.write(`data: ${payloadJson()}\n\n`);
+      sseClients.add(client);
+      req.on("close", () => sseClients.delete(client));
       return;
     }
     serveStatic(url.pathname, res, options.webDist);
@@ -213,6 +232,11 @@ export function createDaemon(options: DaemonOptions): Daemon {
       );
     }
   };
+}
+
+interface SseClient {
+  write(chunk: string): void;
+  end(): void;
 }
 
 function readAcked(path: string): Record<string, string> {
