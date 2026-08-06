@@ -12,6 +12,7 @@ The web inbox is built for the same triage speed as a keyboard-first mail client
 | `/` | Focus search (title, project, agent, and what the agent is asking) |
 | `j` / `k` or `↓` / `↑` | Move selection |
 | `Enter` | Open the selected session |
+| `p` | Open the selected item's pull request (when it has one) |
 | `e` | Mark the selected waiting item handled / unhandled |
 | `r` | Reply to the selected Devin item without leaving the inbox |
 | `Esc` | Clear search / selection, close the reply box |

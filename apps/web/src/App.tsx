@@ -358,6 +358,11 @@ export default function App() {
         if (item?.url) window.open(item.url, "_blank");
         return;
       }
+      if (e.key === "p" && selectedId) {
+        const item = ordered.find((i) => i.id === selectedId);
+        if (item?.prUrl) window.open(item.prUrl, "_blank");
+        return;
+      }
       if (e.key === "e" && selectedId) {
         const item = ordered.find((i) => i.id === selectedId);
         if (item?.status === "waiting") toggleAck(item);
@@ -671,6 +676,7 @@ const SHORTCUTS: [string, string][] = [
   ["j / ↓", "Next item"],
   ["k / ↑", "Previous item"],
   ["↵ Enter", "Open the selected session"],
+  ["p", "Open the selected item's pull request"],
   ["e", "Mark the selected item done / undone"],
   ["r", "Reply to the selected Devin session"],
   ["/", "Focus search"],
