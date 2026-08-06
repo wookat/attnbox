@@ -51,6 +51,26 @@ describe("daemon", () => {
     await reader.cancel();
   });
 
+  it("gzips /api/items and SSE for clients that accept it, plain otherwise", async () => {
+    daemon = createDaemon({ collectors: [stubCollector([waitingItem])], intervalMs: 60_000 });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    // Node's fetch advertises gzip and decodes transparently
+    const gz = await fetch(`http://127.0.0.1:${port}/api/items`);
+    expect(gz.headers.get("content-encoding")).toBe("gzip");
+    expect(((await gz.json()) as { items: AttentionItem[] }).items).toHaveLength(1);
+    const plain = await fetch(`http://127.0.0.1:${port}/api/items`, {
+      headers: { "accept-encoding": "identity" }
+    });
+    expect(plain.headers.get("content-encoding")).toBeNull();
+    const sse = await fetch(`http://127.0.0.1:${port}/api/events`);
+    expect(sse.headers.get("content-encoding")).toBe("gzip");
+    const reader = sse.body!.getReader();
+    const { value } = await reader.read();
+    expect(new TextDecoder().decode(value)).toContain('"demo:1"');
+    await reader.cancel();
+  });
+
   it("survives a collector that throws", async () => {
     const throwing: Collector = {
       name: "boom",
