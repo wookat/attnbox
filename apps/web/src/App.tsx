@@ -36,15 +36,15 @@ const STATUS_STYLE: Record<AttentionItem["status"], { dot: string; label: string
   waiting: { dot: "bg-amber-400 animate-pulse", label: "text-amber-700 dark:text-amber-300" },
   working: { dot: "bg-emerald-400", label: "text-emerald-700 dark:text-emerald-300" },
   idle: { dot: "bg-zinc-400 dark:bg-zinc-500", label: "text-zinc-600 dark:text-zinc-400" },
-  done: { dot: "bg-sky-500", label: "text-sky-600 dark:text-sky-400" },
+  done: { dot: "bg-sky-500", label: "text-sky-700 dark:text-sky-400" },
   unknown: { dot: "bg-zinc-300 dark:bg-zinc-700", label: "text-zinc-600 dark:text-zinc-400" }
 };
 
 const AGENT_STYLE: Record<string, string> = {
-  "claude-code": "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/20",
-  codex: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/20",
-  gemini: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/20",
-  devin: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/20",
+  "claude-code": "bg-orange-500/15 text-orange-800 dark:text-orange-300 border-orange-500/20",
+  codex: "bg-teal-500/15 text-teal-800 dark:text-teal-300 border-teal-500/20",
+  gemini: "bg-blue-500/15 text-blue-800 dark:text-blue-300 border-blue-500/20",
+  devin: "bg-violet-500/15 text-violet-800 dark:text-violet-300 border-violet-500/20",
   "github-pr": "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/20"
 };
 
