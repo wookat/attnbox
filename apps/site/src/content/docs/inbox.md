@@ -32,6 +32,10 @@ Click `✓` (or press `e`) on a waiting item once you've dealt with it: it leave
 
 Handled state is stored by the daemon in `~/.attnbox/acked.json` and synced live to every open tab and device, so your phone and desktop always agree.
 
+## Finished sessions stay out of the way
+
+In the default *All* view, sessions that have ended (finished cloud runs and ended local sessions) collapse behind a **Show N finished sessions** button, so the list you scan is only what's waiting on you or still running. Expand it any time; the *Done* tab, search, and the grouped view always show everything.
+
 ## Grouping
 
 The `⊞` toggle groups the list by project (falling back to agent for cloud sessions without project metadata). Group headers collapse.
