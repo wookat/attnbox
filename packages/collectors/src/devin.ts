@@ -99,7 +99,8 @@ interface DevinSession {
 
 function toItem(session: DevinSession): AttentionItem {
   const status = mapStatus(session.status_enum ?? session.status);
-  const url = session.pull_request?.url ?? sessionUrl(session.session_id);
+  // a waiting session needs its answer in the session itself, not on the PR
+  const url = status === "waiting" ? sessionUrl(session.session_id) : (session.pull_request?.url ?? sessionUrl(session.session_id));
   const project = projectFromPrUrl(session.pull_request?.url ?? undefined);
   const item: AttentionItem = {
     id: `devin:${session.session_id}`,
