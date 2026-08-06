@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from "astro/config";
 import starlight from "@astrojs/starlight";
+import starlightLlmsTxt from "starlight-llms-txt";
 
 export default defineConfig({
   site: "https://attnbox.zalize.com",
@@ -18,7 +19,8 @@ export default defineConfig({
         { label: "Authoritative hooks", slug: "hooks" },
         { label: "Troubleshooting with doctor", slug: "doctor" }
       ],
-      customCss: ["./src/styles/custom.css"]
+      customCss: ["./src/styles/custom.css"],
+      plugins: [starlightLlmsTxt()]
     })
   ]
 });
