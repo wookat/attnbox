@@ -153,6 +153,7 @@ function toItem(session: DevinSession): AttentionItem {
     confidence: "authoritative",
     title: session.title ?? session.session_id,
     url,
+    ...(session.pull_request?.url && session.pull_request.url !== url ? { prUrl: session.pull_request.url } : {}),
     ...(project ? { project } : {}),
     ...(session.updated_at ? { lastActivityAt: session.updated_at } : {})
   };
