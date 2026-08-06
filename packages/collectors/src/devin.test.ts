@@ -34,9 +34,23 @@ describe("DevinCollector", () => {
       status: "waiting",
       attention: "answer",
       confidence: "authoritative",
-      url: "https://github.com/o/r/pull/1",
+      url: "https://app.devin.ai/sessions/abc",
       project: "o/r"
     });
+  });
+
+  it("links non-waiting sessions to their PR when one exists", async () => {
+    const collector = new DevinCollector(
+      "key",
+      "https://api.devin.ai/v1",
+      fakeFetch({
+        sessions: [
+          { session_id: "devin-abc", status_enum: "working", pull_request: { url: "https://github.com/o/r/pull/1" } }
+        ]
+      })
+    );
+    const items = await collector.collect();
+    expect(items[0]?.url).toBe("https://github.com/o/r/pull/1");
   });
 
   it("attaches what the agent is asking to waiting items, cached by updated_at", async () => {
