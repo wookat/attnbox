@@ -103,6 +103,7 @@ export default function App() {
     }
   });
   const [grouped, setGrouped] = useState(() => localStorage.getItem("attnbox:group") === "on");
+  const [showFinished, setShowFinished] = useState(false);
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
@@ -224,7 +225,12 @@ export default function App() {
   );
   const waiting = visible.filter((i) => i.status === "waiting" && !isAcked(i));
   const rest = visible.filter((i) => i.status !== "waiting" || isAcked(i));
-  const ordered = useMemo(() => [...waiting, ...rest], [visible, acked]);
+  // In the default view, finished sessions collapse behind an expander so active work stays in reach
+  const collapseFinished = filter === "all" && query === "" && !grouped;
+  const active = collapseFinished ? rest.filter((i) => i.status !== "done") : rest;
+  const finished = collapseFinished ? rest.filter((i) => i.status === "done") : [];
+  const listed = showFinished || !collapseFinished ? rest : active;
+  const ordered = useMemo(() => [...waiting, ...listed], [visible, acked, listed]);
   const groups = useMemo(() => {
     const map = new Map<string, AttentionItem[]>();
     for (const item of rest) {
@@ -523,11 +529,23 @@ export default function App() {
               ))}
             </div>
           ) : (
-            <ul className="space-y-2">
-              {rest.map((item) => (
-                <ItemRow key={item.id} item={item} {...rowProps(item)} />
-              ))}
-            </ul>
+            <>
+              <ul className="space-y-2">
+                {(collapseFinished && !showFinished ? active : rest).map((item) => (
+                  <ItemRow key={item.id} item={item} {...rowProps(item)} />
+                ))}
+              </ul>
+              {collapseFinished && finished.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowFinished((s) => !s)}
+                  aria-expanded={showFinished}
+                  className="mt-3 w-full rounded-xl border border-dashed border-zinc-800 px-3 py-2 text-xs text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                >
+                  {showFinished ? "Hide" : "Show"} {finished.length} finished session{finished.length > 1 ? "s" : ""}
+                </button>
+              )}
+            </>
           )}
         </section>
         </>
