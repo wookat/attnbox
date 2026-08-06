@@ -227,8 +227,10 @@ export default function App() {
   const rest = visible.filter((i) => i.status !== "waiting" || isAcked(i));
   // In the default view, finished sessions collapse behind an expander so active work stays in reach
   const collapseFinished = filter === "all" && query === "" && !grouped;
-  const active = collapseFinished ? rest.filter((i) => i.status !== "done") : rest;
-  const finished = collapseFinished ? rest.filter((i) => i.status === "done") : [];
+  // same statuses as the Done tab: sessions that ended (cloud done, local idle)
+  const isFinished = (i: AttentionItem): boolean => i.status === "done" || i.status === "idle";
+  const active = collapseFinished ? rest.filter((i) => !isFinished(i)) : rest;
+  const finished = collapseFinished ? rest.filter(isFinished) : [];
   const listed = showFinished || !collapseFinished ? rest : active;
   const ordered = useMemo(() => [...waiting, ...listed], [visible, acked, listed]);
   const groups = useMemo(() => {
