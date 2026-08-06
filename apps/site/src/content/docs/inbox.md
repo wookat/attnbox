@@ -15,6 +15,13 @@ The web inbox is built for the same triage speed as a keyboard-first mail client
 | `e` | Mark the selected waiting item handled / unhandled |
 | `r` | Reply to the selected Devin item without leaving the inbox |
 | `Esc` | Clear search / selection, close the reply box |
+| `?` | Show the shortcut help overlay |
+
+Press `?` any time (or click *press ? for shortcuts* in the footer) for the in-app cheat sheet.
+
+## Theme
+
+The inbox follows your OS theme (`prefers-color-scheme`) out of the box — full light and dark palettes, both WCAG AA. The ◐ button in the header overrides it per browser: it cycles **system → light → dark**, persists across reloads with no flash, and “system” keeps reacting live to OS theme changes.
 
 ## What is it waiting for?
 
