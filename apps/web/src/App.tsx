@@ -417,6 +417,21 @@ export default function App() {
         </nav>
         </div>
 
+        {!loaded && data.items.length === 0 ? (
+          // whole list area mounts fresh once the snapshot arrives — no persisted element shifts
+          <section aria-hidden="true">
+            <ul className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <li key={i} className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4">
+                  <div className="h-4 w-2/3 rounded bg-zinc-800" />
+                  <div className="mt-2 h-3 w-1/3 rounded bg-zinc-800/80" />
+                  <div className="mt-2 h-3 w-5/6 rounded bg-zinc-800/60" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : (
+        <>
         {waiting.length > 0 && (
           <section className="mb-6">
             <div className="mb-2 flex items-center justify-between">
@@ -444,17 +459,7 @@ export default function App() {
           {waiting.length > 0 && rest.length > 0 && (
             <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-400">Everything else</h2>
           )}
-          {!loaded && data.items.length === 0 ? (
-            <ul className="space-y-2" aria-hidden="true">
-              {[0, 1, 2].map((i) => (
-                <li key={i} className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4">
-                  <div className="h-4 w-2/3 rounded bg-zinc-800" />
-                  <div className="mt-2 h-3 w-1/3 rounded bg-zinc-800/80" />
-                  <div className="mt-2 h-3 w-5/6 rounded bg-zinc-800/60" />
-                </li>
-              ))}
-            </ul>
-          ) : visible.length === 0 ? (
+          {visible.length === 0 ? (
             data.items.length === 0 && filter === "all" && query === "" ? (
               <div className="rounded-2xl border border-dashed border-zinc-800 p-8">
                 <p className="text-center text-2xl">📭</p>
@@ -525,6 +530,8 @@ export default function App() {
             </ul>
           )}
         </section>
+        </>
+        )}
 
         <footer className="mt-10 text-center text-[11px] text-zinc-400">
           local-first · data never leaves this machine ·{" "}
@@ -643,10 +650,18 @@ function ItemRow({
           )}
           {item.lastActivityAt && <span>{timeAgo(item.lastActivityAt)}</span>}
         </p>
-        {item.detail && (
+        {item.detail ? (
           <p className="mt-1 line-clamp-2 text-xs text-zinc-400" title={item.detail}>
             {item.detail}
           </p>
+        ) : (
+          item.status === "waiting" &&
+          item.location === "cloud" && (
+            // detail previews stream in on later collect cycles; hold the line so cards don't grow
+            <p className="mt-1 text-xs text-zinc-600" aria-hidden="true">
+              …
+            </p>
+          )
         )}
         {item.project && <p className="mt-1 truncate text-[11px] text-zinc-400">{item.project}</p>}
         {replying && onReplyToggle && (
