@@ -1,7 +1,15 @@
 :root {
   --sl-color-accent-low: #3a2705;
-  --sl-color-accent: #d97706;
+  /* amber-500: >= 4.5:1 against Starlight's dark background (amber-600 was 2.97:1) */
+  --sl-color-accent: #f59e0b;
   --sl-color-accent-high: #fbbf24;
+}
+
+:root[data-theme="light"] {
+  --sl-color-accent-low: #fef3c7;
+  /* amber-700: >= 4.5:1 against white */
+  --sl-color-accent: #b45309;
+  --sl-color-accent-high: #92400e;
 }
 
 .hero img {
