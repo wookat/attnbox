@@ -9,7 +9,7 @@ The web inbox is built for the same triage speed as a keyboard-first mail client
 
 | Key | Action |
 |---|---|
-| `/` | Focus search (title, project, agent) |
+| `/` | Focus search (title, project, agent, and what the agent is asking) |
 | `j` / `k` or `↓` / `↑` | Move selection |
 | `Enter` | Open the selected session |
 | `e` | Mark the selected waiting item handled / unhandled |
@@ -45,7 +45,9 @@ In the default *All* view, sessions that have ended (finished cloud runs and end
 
 ## Grouping
 
-The `⊞` toggle groups the list by project (falling back to agent for cloud sessions without project metadata). Group headers collapse.
+The `⊞` toggle groups the list by project. Devin sessions with a pull request are grouped by that repository (`owner/repo`); cloud sessions without one fall back to an agent bucket. Groups are ordered by how many active sessions they hold — busiest first, fallback buckets last — and group headers collapse.
+
+Waiting cloud items link straight to the session — the place you can actually answer — while finished or working sessions with a pull request link to the PR.
 
 ## Reply in place (cloud agents)
 
