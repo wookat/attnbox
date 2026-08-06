@@ -1,5 +1,14 @@
 # attnbox
 
+## 0.3.2
+
+### Patch Changes
+
+- cad56a6: First-load polish and transport fixes: the inbox shows a loading skeleton instead of a false "No one is waiting on you" flash before the first snapshot arrives; hashed static assets are served with immutable cache headers (index.html/sw.js revalidate); added meta description and robots.txt.
+- d3bc96b: Eliminated the large first-load layout shift (CLS 0.37 → 0.076, Lighthouse perf 79 → 95): the list area now mounts fresh after the first snapshot instead of pushing a pre-mounted section down, and waiting cloud cards reserve their detail-preview line while it streams in.
+- Updated dependencies [cad56a6]
+  - attnbox-daemon@0.2.1
+
 ## 0.3.1
 
 ### Patch Changes
