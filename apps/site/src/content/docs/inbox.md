@@ -47,7 +47,7 @@ In the default *All* view, sessions that have ended (finished cloud runs and end
 
 The `⊞` toggle groups the list by project. Devin sessions with a pull request are grouped by that repository (`owner/repo`); cloud sessions without one fall back to an agent bucket. Groups are ordered by how many active sessions they hold — busiest first, fallback buckets last — and group headers collapse. Collapsed groups stay collapsed across reloads (per browser), and `j`/`k` walk the list in the on-screen group order, skipping collapsed groups.
 
-Waiting cloud items link straight to the session — the place you can actually answer — while finished or working sessions with a pull request link to the PR.
+Waiting cloud items link straight to the session — the place you can actually answer — while finished or working sessions with a pull request link to the PR. When a waiting session also has a pull request, a small **PR ↗** chip in the card's metadata row opens it in a new tab without leaving the session link as the primary action.
 
 ## Reply in place (cloud agents)
 
