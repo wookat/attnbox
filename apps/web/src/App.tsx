@@ -33,19 +33,19 @@ const FILTERS: { key: Filter; label: string }[] = [
 ];
 
 const STATUS_STYLE: Record<AttentionItem["status"], { dot: string; label: string }> = {
-  waiting: { dot: "bg-amber-400 animate-pulse", label: "text-amber-300" },
-  working: { dot: "bg-emerald-400", label: "text-emerald-300" },
-  idle: { dot: "bg-zinc-500", label: "text-zinc-400" },
-  done: { dot: "bg-sky-500", label: "text-sky-400" },
-  unknown: { dot: "bg-zinc-700", label: "text-zinc-400" }
+  waiting: { dot: "bg-amber-400 animate-pulse", label: "text-amber-700 dark:text-amber-300" },
+  working: { dot: "bg-emerald-400", label: "text-emerald-700 dark:text-emerald-300" },
+  idle: { dot: "bg-zinc-400 dark:bg-zinc-500", label: "text-zinc-600 dark:text-zinc-400" },
+  done: { dot: "bg-sky-500", label: "text-sky-600 dark:text-sky-400" },
+  unknown: { dot: "bg-zinc-300 dark:bg-zinc-700", label: "text-zinc-600 dark:text-zinc-400" }
 };
 
 const AGENT_STYLE: Record<string, string> = {
-  "claude-code": "bg-orange-500/15 text-orange-300 border-orange-500/20",
-  codex: "bg-teal-500/15 text-teal-300 border-teal-500/20",
-  gemini: "bg-blue-500/15 text-blue-300 border-blue-500/20",
-  devin: "bg-violet-500/15 text-violet-300 border-violet-500/20",
-  "github-pr": "bg-zinc-500/15 text-zinc-300 border-zinc-500/20"
+  "claude-code": "bg-orange-500/15 text-orange-700 dark:text-orange-300 border-orange-500/20",
+  codex: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/20",
+  gemini: "bg-blue-500/15 text-blue-700 dark:text-blue-300 border-blue-500/20",
+  devin: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/20",
+  "github-pr": "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/20"
 };
 
 const ATTENTION_LABEL: Record<NonNullable<AttentionItem["attention"]>, string> = {
@@ -319,7 +319,7 @@ export default function App() {
 
   return (
     <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">
-      <header className="sticky top-0 z-10 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/60">
+      <header className="sticky top-0 z-10 border-b border-zinc-200/80 dark:border-zinc-800/80 bg-white/80 dark:bg-zinc-950/80 backdrop-blur supports-[backdrop-filter]:bg-white/60 dark:supports-[backdrop-filter]:bg-zinc-950/60">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between px-4">
           <div className="flex items-center gap-2.5">
             <span className="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 text-sm font-bold text-zinc-950">
@@ -327,7 +327,7 @@ export default function App() {
             </span>
             <div>
               <h1 className="text-base font-semibold leading-tight tracking-tight">attnbox</h1>
-              <p className="text-[11px] leading-tight text-zinc-400">agent attention inbox</p>
+              <p className="text-[11px] leading-tight text-zinc-600 dark:text-zinc-400">agent attention inbox</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -338,8 +338,8 @@ export default function App() {
                 aria-pressed={notify}
                 className={`grid size-8 place-items-center rounded-full border text-sm transition-colors ${
                   notify
-                    ? "border-amber-700 bg-amber-500/10 text-amber-300"
-                    : "border-zinc-700 text-zinc-400 hover:text-zinc-300"
+                    ? "border-amber-400 dark:border-amber-700 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    : "border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                 }`}
               >
                 {notify ? "🔔" : "🔕"}
@@ -347,10 +347,10 @@ export default function App() {
             )}
             <span
               className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs ${
-                connected ? "border-emerald-800 text-emerald-300" : "border-zinc-700 text-zinc-400"
+                connected ? "border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300" : "border-zinc-300 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400"
               }`}
             >
-              <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-zinc-600"}`} />
+              <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-zinc-400 dark:bg-zinc-600"}`} />
               {connected ? "live" : "offline"}
             </span>
           </div>
@@ -358,7 +358,7 @@ export default function App() {
       </header>
 
       {!connected && everConnected.current && (
-        <div className="border-b border-amber-900/50 bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-300">
+        <div className="border-b border-amber-300 dark:border-amber-900/50 bg-amber-100 dark:bg-amber-950/40 px-4 py-2 text-center text-xs text-amber-700 dark:text-amber-300">
           Connection to the attnbox daemon lost — showing the last known state, reconnecting…
         </div>
       )}
@@ -367,22 +367,22 @@ export default function App() {
         <section className="mb-5">
           <p className="text-lg font-medium sm:text-xl">
             {!loaded ? (
-              <span className="text-zinc-400">Checking your agents…</span>
+              <span className="text-zinc-600 dark:text-zinc-400">Checking your agents…</span>
             ) : unackedWaiting > 0 ? (
               <>
-                <span className="text-amber-300">{unackedWaiting}</span> agent
+                <span className="text-amber-700 dark:text-amber-300">{unackedWaiting}</span> agent
                 {unackedWaiting > 1 ? "s are" : " is"} waiting on you
               </>
             ) : (
-              <span className="text-zinc-300">No one is waiting on you 🎉</span>
+              <span className="text-zinc-700 dark:text-zinc-300">No one is waiting on you 🎉</span>
             )}
           </p>
-          <p className="text-sm text-zinc-400">
+          <p className="text-sm text-zinc-600 dark:text-zinc-400">
             {loaded ? `${data.summary.working} working · ${data.summary.total} sessions tracked` : "\u00a0"}
           </p>
         </section>
 
-        <div className="sticky top-14 z-10 -mx-4 mb-5 bg-zinc-950/90 px-4 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-zinc-950/75">
+        <div className="sticky top-14 z-10 -mx-4 mb-5 bg-white/90 dark:bg-zinc-950/90 px-4 pb-2 pt-2 backdrop-blur supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-zinc-950/75">
         <div className="mb-2">
           <input
             ref={searchRef}
@@ -391,22 +391,22 @@ export default function App() {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search title, project, agent…  ( / )"
             aria-label="Search sessions"
-            className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 px-3.5 py-2 text-sm text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none"
+            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/60 dark:bg-zinc-900/60 px-3.5 py-2 text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
           />
         </div>
 
-        <nav className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-800 bg-zinc-900/60 p-1">
+        <nav className="flex gap-1 overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/60 dark:bg-zinc-900/60 p-1">
           {FILTERS.map(({ key, label }) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
               className={`flex-1 whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-colors ${
-                filter === key ? "bg-zinc-100 font-medium text-zinc-900" : "text-zinc-400 hover:text-zinc-200"
+                filter === key ? "bg-zinc-900 font-medium text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
               }`}
             >
               {label}
               {key === "waiting" && unackedWaiting > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-300">
+                <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">
                   {unackedWaiting}
                 </span>
               )}
@@ -417,7 +417,7 @@ export default function App() {
             aria-pressed={grouped}
             title="Group by project"
             className={`whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition-colors ${
-              grouped ? "bg-zinc-100 font-medium text-zinc-900" : "text-zinc-400 hover:text-zinc-200"
+              grouped ? "bg-zinc-900 font-medium text-zinc-100 dark:bg-zinc-100 dark:text-zinc-900" : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
             }`}
           >
             ⊞
@@ -430,10 +430,10 @@ export default function App() {
           <section aria-hidden="true">
             <ul className="space-y-2">
               {[0, 1, 2].map((i) => (
-                <li key={i} className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 sm:p-4">
-                  <div className="h-4 w-2/3 rounded bg-zinc-800" />
-                  <div className="mt-2 h-3 w-1/3 rounded bg-zinc-800/80" />
-                  <div className="mt-2 h-3 w-5/6 rounded bg-zinc-800/60" />
+                <li key={i} className="animate-pulse rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/40 dark:bg-zinc-900/40 p-3 sm:p-4">
+                  <div className="h-4 w-2/3 rounded bg-zinc-200 dark:bg-zinc-800" />
+                  <div className="mt-2 h-3 w-1/3 rounded bg-zinc-200/80 dark:bg-zinc-800/80" />
+                  <div className="mt-2 h-3 w-5/6 rounded bg-zinc-200/60 dark:bg-zinc-800/60" />
                 </li>
               ))}
             </ul>
@@ -443,12 +443,12 @@ export default function App() {
         {waiting.length > 0 && (
           <section className="mb-6">
             <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-xs font-medium uppercase tracking-wider text-amber-400">Needs you</h2>
+              <h2 className="text-xs font-medium uppercase tracking-wider text-amber-700 dark:text-amber-400">Needs you</h2>
               {waiting.length > 1 && (
                 <button
                   type="button"
                   onClick={() => ackAll(waiting)}
-                  className="rounded-md px-2 py-0.5 text-xs text-zinc-400 transition hover:bg-zinc-800 hover:text-zinc-200"
+                  className="rounded-md px-2 py-0.5 text-xs text-zinc-600 dark:text-zinc-400 transition hover:bg-zinc-200 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-200"
                   title="Mark all visible waiting items handled"
                 >
                   ✓ all done
@@ -465,38 +465,38 @@ export default function App() {
 
         <section>
           {waiting.length > 0 && rest.length > 0 && (
-            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-400">Everything else</h2>
+            <h2 className="mb-2 text-xs font-medium uppercase tracking-wider text-zinc-600 dark:text-zinc-400">Everything else</h2>
           )}
           {visible.length === 0 ? (
             data.items.length === 0 && filter === "all" && query === "" ? (
-              <div className="rounded-2xl border border-dashed border-zinc-800 p-8">
+              <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-8">
                 <p className="text-center text-2xl">📭</p>
-                <p className="mt-2 text-center text-sm text-zinc-300">No agent sessions found yet</p>
-                <ul className="mx-auto mt-4 max-w-md space-y-2 text-xs text-zinc-400">
+                <p className="mt-2 text-center text-sm text-zinc-700 dark:text-zinc-300">No agent sessions found yet</p>
+                <ul className="mx-auto mt-4 max-w-md space-y-2 text-xs text-zinc-600 dark:text-zinc-400">
                   <li>
-                    <span className="text-zinc-200">Local agents</span> — start a Claude Code, Codex CLI or Gemini
+                    <span className="text-zinc-800 dark:text-zinc-200">Local agents</span> — start a Claude Code, Codex CLI or Gemini
                     CLI session; it appears here automatically.
                   </li>
                   <li>
-                    <span className="text-zinc-200">Cloud agents</span> — restart with{" "}
-                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">DEVIN_API_KEY=… npx attnbox</code>{" "}
-                    or <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">GITHUB_TOKEN=…</code> for PRs
+                    <span className="text-zinc-800 dark:text-zinc-200">Cloud agents</span> — restart with{" "}
+                    <code className="rounded bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 text-zinc-700 dark:text-zinc-300">DEVIN_API_KEY=… npx attnbox</code>{" "}
+                    or <code className="rounded bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 text-zinc-700 dark:text-zinc-300">GITHUB_TOKEN=…</code> for PRs
                     awaiting your review.
                   </li>
                   <li>
-                    <span className="text-zinc-200">Diagnose</span> — run{" "}
-                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">npx attnbox doctor</code> to see
+                    <span className="text-zinc-800 dark:text-zinc-200">Diagnose</span> — run{" "}
+                    <code className="rounded bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 text-zinc-700 dark:text-zinc-300">npx attnbox doctor</code> to see
                     which collectors are active, and{" "}
-                    <code className="rounded bg-zinc-900 px-1 py-0.5 text-zinc-300">npx attnbox hooks --install</code>{" "}
+                    <code className="rounded bg-zinc-100 dark:bg-zinc-900 px-1 py-0.5 text-zinc-700 dark:text-zinc-300">npx attnbox hooks --install</code>{" "}
                     for authoritative status.
                   </li>
                 </ul>
               </div>
             ) : (
-              <div className="rounded-2xl border border-dashed border-zinc-800 p-10 text-center">
+              <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 p-10 text-center">
                 <p className="text-2xl">📭</p>
-                <p className="mt-2 text-sm text-zinc-400">Nothing here</p>
-                <p className="mt-1 text-xs text-zinc-400">
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">Nothing here</p>
+                <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-400">
                   {query !== "" ? "No sessions match this search." : "No sessions match this filter."}
                 </p>
               </div>
@@ -514,11 +514,11 @@ export default function App() {
                         return next;
                       })
                     }
-                    className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-400 hover:text-zinc-200"
+                    className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                   >
                     <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
                     <span className="truncate">{name}</span>
-                    <span className="text-zinc-400">{items.length}</span>
+                    <span className="text-zinc-600 dark:text-zinc-400">{items.length}</span>
                   </button>
                   {!collapsed.has(name) && (
                     <ul className="space-y-2">
@@ -542,7 +542,7 @@ export default function App() {
                   type="button"
                   onClick={() => setShowFinished((s) => !s)}
                   aria-expanded={showFinished}
-                  className="mt-3 w-full rounded-xl border border-dashed border-zinc-800 px-3 py-2 text-xs text-zinc-400 transition hover:border-zinc-700 hover:text-zinc-200"
+                  className="mt-3 w-full rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-600 dark:text-zinc-400 transition hover:border-zinc-400 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-200"
                 >
                   {showFinished ? "Hide" : "Show"} {finished.length} finished session{finished.length > 1 ? "s" : ""}
                 </button>
@@ -553,9 +553,9 @@ export default function App() {
         </>
         )}
 
-        <footer className="mt-10 text-center text-[11px] text-zinc-400">
+        <footer className="mt-10 text-center text-[11px] text-zinc-600 dark:text-zinc-400">
           local-first · data never leaves this machine ·{" "}
-          <a className="underline hover:text-zinc-400" href="https://github.com/wookat/attnbox" target="_blank" rel="noreferrer">
+          <a className="underline hover:text-zinc-600 dark:hover:text-zinc-400" href="https://github.com/wookat/attnbox" target="_blank" rel="noreferrer">
             github.com/wookat/attnbox
           </a>
         </footer>
@@ -615,16 +615,16 @@ function ReplyBox({ item, onSent, onClose }: { item: AttentionItem; onSent: () =
         }}
         placeholder="Reply to this agent… (⌘↵ to send, Esc to cancel)"
         aria-label={`Reply to ${item.title}`}
-        className="min-w-0 flex-1 rounded-lg border border-zinc-700 bg-zinc-950/60 px-2.5 py-1.5 text-xs text-zinc-200 placeholder:text-zinc-600 focus:border-zinc-500 focus:outline-none"
+        className="min-w-0 flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/60 dark:bg-zinc-950/60 px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-500 focus:outline-none"
       />
       <button
         onClick={() => void send()}
         disabled={state === "sending" || text.trim() === ""}
-        className="rounded-lg border border-sky-800 bg-sky-500/10 px-2.5 py-1.5 text-xs text-sky-300 disabled:opacity-40"
+        className="rounded-lg border border-sky-300 dark:border-sky-800 bg-sky-500/10 px-2.5 py-1.5 text-xs text-sky-700 dark:text-sky-300 disabled:opacity-40"
       >
         {state === "sending" ? "…" : "Send"}
       </button>
-      {state === "error" && <span className="mt-1.5 text-[11px] text-red-400">{error}</span>}
+      {state === "error" && <span className="mt-1.5 text-[11px] text-red-600 dark:text-red-400">{error}</span>}
     </div>
   );
 }
@@ -649,41 +649,41 @@ function ItemRow({
   onReplied?: (() => void) | undefined;
 }) {
   const style = STATUS_STYLE[item.status];
-  const agentStyle = AGENT_STYLE[item.agent] ?? "bg-zinc-500/15 text-zinc-300 border-zinc-500/20";
+  const agentStyle = AGENT_STYLE[item.agent] ?? "bg-zinc-500/15 text-zinc-700 dark:text-zinc-300 border-zinc-500/20";
   const body = (
     <div
       className={`flex items-start gap-3 rounded-xl border p-3 transition-colors sm:p-4 ${
-        highlight ? "border-amber-900/60 bg-amber-950/20" : "border-zinc-800 bg-zinc-900/40"
-      } ${item.url ? "hover:border-zinc-600 active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-400/70" : ""} ${
+        highlight ? "border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/20" : "border-zinc-200 dark:border-zinc-800 bg-zinc-100/40 dark:bg-zinc-900/40"
+      } ${item.url ? "hover:border-zinc-400 dark:hover:border-zinc-600 active:bg-zinc-100 dark:active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-500/70 dark:ring-zinc-400/70" : ""} ${
         dimmed ? "opacity-50" : ""
       }`}
     >
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-sm font-medium sm:line-clamp-1">{item.title}</p>
-        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-400">
+        <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-zinc-600 dark:text-zinc-400">
           <span className={style.label}>{item.attention ? ATTENTION_LABEL[item.attention] : item.status}</span>
           <span className={`rounded-full border px-2 py-0.5 ${agentStyle}`}>{item.agent}</span>
-          <span className="rounded bg-zinc-800 px-1.5 py-0.5">{item.location}</span>
+          <span className="rounded bg-zinc-200 dark:bg-zinc-800 px-1.5 py-0.5">{item.location}</span>
           {item.confidence === "heuristic" && (
             <span title="status inferred from local logs, not reported by the agent">~heuristic</span>
           )}
           {item.lastActivityAt && <span>{timeAgo(item.lastActivityAt)}</span>}
         </p>
         {item.detail ? (
-          <p className="mt-1 line-clamp-2 text-xs text-zinc-400" title={item.detail}>
+          <p className="mt-1 line-clamp-2 text-xs text-zinc-600 dark:text-zinc-400" title={item.detail}>
             {item.detail}
           </p>
         ) : (
           item.status === "waiting" &&
           item.location === "cloud" && (
             // detail previews stream in on later collect cycles; hold the line so cards don't grow
-            <p className="mt-1 text-xs text-zinc-600" aria-hidden="true">
+            <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-600" aria-hidden="true">
               …
             </p>
           )
         )}
-        {item.project && <p className="mt-1 truncate text-[11px] text-zinc-400">{item.project}</p>}
+        {item.project && <p className="mt-1 truncate text-[11px] text-zinc-600 dark:text-zinc-400">{item.project}</p>}
         {replying && onReplyToggle && (
           <ReplyBox item={item} onSent={() => onReplied?.()} onClose={onReplyToggle} />
         )}
@@ -697,7 +697,7 @@ function ItemRow({
           }}
           title="Reply without leaving the inbox (r)"
           aria-label="Reply"
-          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-400 transition-colors hover:border-sky-700 hover:text-sky-300"
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-600 dark:text-zinc-400 transition-colors hover:border-sky-400 dark:hover:border-sky-700 hover:text-sky-700 dark:hover:text-sky-300"
         >
           ↩
         </button>
@@ -711,12 +711,12 @@ function ItemRow({
           }}
           title={dimmed ? "Mark as unhandled" : "Mark as handled (e)"}
           aria-label={dimmed ? "Mark as unhandled" : "Mark as handled"}
-          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-700 text-xs text-zinc-400 transition-colors hover:border-emerald-700 hover:text-emerald-300"
+          className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full border border-zinc-300 dark:border-zinc-700 text-xs text-zinc-600 dark:text-zinc-400 transition-colors hover:border-emerald-400 dark:hover:border-emerald-700 hover:text-emerald-700 dark:hover:text-emerald-300"
         >
           ✓
         </button>
       )}
-      {item.url && <span className="mt-1 text-zinc-400">↗</span>}
+      {item.url && <span className="mt-1 text-zinc-600 dark:text-zinc-400">↗</span>}
     </div>
   );
   return (
