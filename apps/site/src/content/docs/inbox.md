@@ -70,6 +70,14 @@ ATTNBOX_WEBHOOK_URL=https://ntfy.sh/my-topic attnbox
 
 Each time an agent *newly* starts waiting on you, the daemon POSTs `{ "event": "waiting", "item": { … } }` (the same item shape as `/api/items`) to that URL — wire it to ntfy, a Slack incoming webhook relay, or anything else. Fire-and-forget: webhook failures never affect the inbox, and sessions already waiting when the daemon starts don't fire.
 
+The plain URL above shows the raw JSON as the notification text. ntfy can template it into a readable push ([message templating](https://docs.ntfy.sh/publish/#message-templating), verified end-to-end):
+
+```bash
+ATTNBOX_WEBHOOK_URL='https://ntfy.sh/my-topic?tpl=yes&title={{.item.agent}}+is+waiting:+{{.item.title}}&message={{if+.item.detail}}{{.item.detail}}{{else}}needs+your+attention{{end}}' attnbox
+```
+
+which arrives on your phone as “**devin is waiting: Fix the login bug** — Should I use bcrypt or argon2?” (`item.detail` only exists when the collector saw the actual question, hence the fallback).
+
 ## From your phone
 
 The daemon binds `127.0.0.1` by default — nothing leaves your machine. To open the inbox from another device (e.g. install the PWA on your phone):
