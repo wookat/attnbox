@@ -596,7 +596,7 @@ export default function App() {
                       })
                     }
                     aria-expanded={!collapsed.has(name)}
-                    className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                    className="mb-1 flex w-full items-center gap-1.5 py-1.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                   >
                     <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
                     <span className="truncate">
