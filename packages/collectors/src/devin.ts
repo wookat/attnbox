@@ -3,6 +3,12 @@ import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
 /** Cap on uncached detail lookups per collect cycle; the rest catch up on later cycles. */
 export const MAX_DETAIL_FETCHES_PER_CYCLE = 10;
 
+const PAGE_SIZE = 100;
+/** Safety cap on session pagination (≤ 1,000 sessions), matching tested UI scale. */
+export const MAX_SESSION_PAGES = 10;
+/** Deep pages change rarely; re-crawl them at most this often to keep API traffic bounded. */
+export const DEEP_REFRESH_MS = 30_000;
+
 /**
  * Cloud collector for Devin sessions via the public API
  * (`GET https://api.devin.ai/v1/sessions`). `status_enum === "blocked"`
@@ -22,23 +28,50 @@ export class DevinCollector implements Collector {
   ) {}
 
   async collect(): Promise<AttentionItem[]> {
+    const first = await this.fetchPage(0);
+    if (first === undefined) return [];
+    if (first.length < PAGE_SIZE) {
+      this.deepCache = undefined;
+      return this.finish(first);
+    }
+    // the first page is full, so older sessions live on deeper pages;
+    // those change rarely — reuse the last deep crawl while it's fresh
+    if (this.deepCache && Date.now() - this.deepCache.fetchedAt < DEEP_REFRESH_MS) {
+      return this.finish(dedupe([...first, ...this.deepCache.sessions]));
+    }
+    const deep: DevinSession[] = [];
+    for (let page = 1; page < MAX_SESSION_PAGES; page++) {
+      const pageSessions = await this.fetchPage(page * PAGE_SIZE);
+      if (pageSessions === undefined) break;
+      deep.push(...pageSessions);
+      if (pageSessions.length < PAGE_SIZE) break;
+    }
+    this.deepCache = { sessions: deep, fetchedAt: Date.now() };
+    return this.finish(dedupe([...first, ...deep]));
+  }
+
+  private deepCache: { sessions: DevinSession[]; fetchedAt: number } | undefined;
+
+  private async fetchPage(offset: number): Promise<DevinSession[] | undefined> {
     let response: Response;
     try {
-      response = await this.fetchImpl(`${this.baseUrl}/sessions?limit=100`, {
+      response = await this.fetchImpl(`${this.baseUrl}/sessions?limit=${PAGE_SIZE}&offset=${offset}`, {
         headers: { Authorization: `Bearer ${this.apiKey}` }
       });
     } catch {
-      return [];
+      return undefined;
     }
     if (!response.ok) {
       if (response.status === 401 || response.status === 403) {
         console.error(`attnbox: devin collector: HTTP ${response.status} — check DEVIN_API_KEY`);
       }
-      return [];
+      return undefined;
     }
-
     const body = (await response.json()) as { sessions?: DevinSession[] };
-    const sessions = body.sessions ?? [];
+    return body.sessions ?? [];
+  }
+
+  private async finish(sessions: DevinSession[]): Promise<AttentionItem[]> {
     const items = sessions.map((s) => toItem(s));
     await this.attachDetails(sessions, items);
     return items;
@@ -86,6 +119,11 @@ export class DevinCollector implements Collector {
       return undefined;
     }
   }
+}
+
+function dedupe(sessions: DevinSession[]): DevinSession[] {
+  const seen = new Set<string>();
+  return sessions.filter((s) => (seen.has(s.session_id) ? false : (seen.add(s.session_id), true)));
 }
 
 interface DevinSession {

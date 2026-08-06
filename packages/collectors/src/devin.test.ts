@@ -53,6 +53,73 @@ describe("DevinCollector", () => {
     expect(items[0]?.url).toBe("https://github.com/o/r/pull/1");
   });
 
+  it("paginates past the first 100 sessions until a short page", async () => {
+    const requested: string[] = [];
+    const paged = (async (url: RequestInfo | URL) => {
+      const u = String(url);
+      requested.push(u);
+      const offset = Number(new URL(u).searchParams.get("offset"));
+      const count = offset === 0 ? 100 : 3;
+      return {
+        ok: true,
+        json: async () => ({
+          sessions: Array.from({ length: count }, (_, i) => ({
+            session_id: `devin-${offset + i}`,
+            status_enum: offset === 0 && i === 0 ? "working" : offset > 0 && i === 0 ? "blocked" : "finished"
+          }))
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", paged);
+    const items = await collector.collect();
+    expect(items).toHaveLength(103);
+    expect(requested.filter((u) => u.includes("/sessions?"))).toHaveLength(2);
+    // the waiting session that lives beyond page 1 is not silently dropped
+    expect(items.find((i) => i.id === "devin:devin-100")?.status).toBe("waiting");
+  });
+
+  it("reuses the deep-page crawl within the refresh window", async () => {
+    const listCalls: string[] = [];
+    const paged = (async (url: RequestInfo | URL) => {
+      const u = String(url);
+      if (u.includes("/sessions?")) listCalls.push(u);
+      const offset = Number(new URL(u).searchParams.get("offset"));
+      const count = offset === 0 ? 100 : 1;
+      return {
+        ok: true,
+        json: async () => ({
+          sessions: Array.from({ length: count }, (_, i) => ({
+            session_id: `devin-${offset + i}`,
+            status_enum: "finished"
+          }))
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", paged);
+    expect(await collector.collect()).toHaveLength(101);
+    expect(listCalls).toHaveLength(2);
+    expect(await collector.collect()).toHaveLength(101);
+    // second cycle only re-fetched page 1; the deep crawl was served from cache
+    expect(listCalls).toHaveLength(3);
+  });
+
+  it("keeps already-fetched pages when a later page fails", async () => {
+    let call = 0;
+    const flaky = (async () => {
+      call++;
+      if (call === 2) throw new Error("network");
+      return {
+        ok: true,
+        json: async () => ({
+          sessions: Array.from({ length: 100 }, (_, i) => ({ session_id: `devin-${i}`, status_enum: "finished" }))
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", flaky);
+    const items = await collector.collect();
+    expect(items).toHaveLength(100);
+  });
+
   it("attaches what the agent is asking to waiting items, cached by updated_at", async () => {
     const calls: string[] = [];
     const routed = (async (url: RequestInfo | URL) => {
