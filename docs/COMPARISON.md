@@ -60,6 +60,21 @@
 | 移动端一等公民 + 数据默认不出本机 | 二者不可兼得（agent-dashboard 局域网 / Omnara 云端） | ✅ localhost 面板 + 响应式，后续可选自托管中继 |
 | 现代 Web 设计语言（Tailwind + shadcn/ui） | 竞品全为 TUI 或简陋 PWA | ✅ |
 
+## 四之二、2026-08 新出现同类扫描（2026-08-06，检索 + README 核对，未实测）
+
+一批 2026 年新项目围绕"人-agent / agent-agent 协作"出现，逐个核对后均不构成对我们核心定位（聚合**已存在的**本地会话 + 云端 agent 的注意力收件箱）的直接竞争，但验证了"human escalation queue / unified inbox"措辞正在成为行业共识：
+
+| 项目 | 形态 | 与我们的差异 |
+|---|---|---|
+| [dbarkman/ProjectDispatcher](https://github.com/dbarkman/ProjectDispatcher) | 工单看板 + 心跳编排 daemon | "由它派发工单启动 agent"的编排器，Human 列即收件箱；不发现已有会话，不覆盖云端 agent |
+| [Nyankoro2856/crewmail](https://github.com/Nyankoro2856/crewmail) | 文件消息总线 + MCP | agent 之间互发消息 + HUMAN 升级队列；是 agent 侧协议，不是人的聚合视图 |
+| [salimfadhley/agent-inbox](https://github.com/salimfadhley/agent-inbox) | SQLite 邮箱 + HTTP/MCP | 同上（agent 互发邮件），自己诚实声明"运行中的 LLM turn 无法被外部打断" |
+| [yonidavidson/agentcomm](https://github.com/yonidavidson/agentcomm) | CLI 邮箱，六种后端 | agent-agent 总线（repo 即总线），无人类注意力视图 |
+| [msanchezdev/agent-bridge](https://github.com/msanchezdev/agent-bridge) | 文件群聊 skill | Claude Code 实例间群聊，按项目命名空间 |
+| [solo-agent/solo](https://github.com/solo-agent/solo) | 本地 workspace（频道/任务板） | "由它协调"的工作台（Claude/Codex/OpenCode 等），非零侵入聚合，无云端 agent |
+
+结论：新增竞争都落在 **agent-agent 通信/编排** 象限；"零侵入聚合已有本地会话 + 云端 agent、移动一等公民、隐私默认不出本机"的组合仍无直接对手。需持续监测 ProjectDispatcher/solo 是否长出"发现已有会话"能力。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
