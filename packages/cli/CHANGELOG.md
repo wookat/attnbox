@@ -1,5 +1,13 @@
 # attnbox
 
+## 0.3.6
+
+### Patch Changes
+
+- 0b9af32: Light theme: done-status label and agent badge text darkened one shade to clear WCAG AA contrast on card backgrounds (dark theme unchanged).
+- 435f234: Mobile: reply-box placeholder no longer overflows the textarea (shortcut hint moved to a tooltip); grouped-view fallback buckets render as "agent · no project" instead of "(agent)".
+- fc330ce: Grouped view: j/k keyboard navigation now follows the on-screen group order and skips collapsed groups, instead of walking the flat list order.
+
 ## 0.3.5
 
 ### Patch Changes
