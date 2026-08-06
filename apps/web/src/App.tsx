@@ -124,7 +124,17 @@ export default function App() {
     const saved = localStorage.getItem("attnbox:theme");
     return saved === "light" || saved === "dark" ? saved : "system";
   });
-  const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("attnbox:collapsed") ?? "[]") as unknown;
+      return new Set(Array.isArray(saved) ? saved.filter((v): v is string => typeof v === "string") : []);
+    } catch {
+      return new Set();
+    }
+  });
+  useEffect(() => {
+    localStorage.setItem("attnbox:collapsed", JSON.stringify([...collapsed]));
+  }, [collapsed]);
   const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
 
