@@ -1,5 +1,12 @@
 # attnbox
 
+## 0.3.3
+
+### Patch Changes
+
+- 0e8c010: Default inbox view collapses finished sessions behind a "Show N finished sessions" expander (76% of a real dogfood dataset was finished history drowning the actionable cards). Done tab, search, and grouped view are unchanged.
+- ec65acd: The finished-sessions expander now covers the same statuses as the Done tab (cloud done + ended local idle sessions); unknown-status sessions stay visible.
+
 ## 0.3.2
 
 ### Patch Changes
