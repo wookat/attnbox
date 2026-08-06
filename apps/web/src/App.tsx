@@ -73,7 +73,7 @@ function matches(item: AttentionItem, filter: Filter): boolean {
 function matchesQuery(item: AttentionItem, query: string): boolean {
   if (query === "") return true;
   const q = query.toLowerCase();
-  return [item.title, item.project ?? "", item.agent].some((f) => f.toLowerCase().includes(q));
+  return [item.title, item.project ?? "", item.agent, item.detail ?? ""].some((f) => f.toLowerCase().includes(q));
 }
 
 function notificationsSupported(): boolean {
@@ -453,7 +453,7 @@ export default function App() {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search title, project, agent…  ( / )"
+            placeholder="Search title, project, agent, what it's asking…  ( / )"
             aria-label="Search sessions"
             className="w-full rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-100/60 dark:bg-zinc-900/60 px-3.5 py-2 text-sm text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-600 focus:outline-none"
           />
