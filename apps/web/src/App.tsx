@@ -487,7 +487,7 @@ export default function App() {
             >
               {label}
               {key === "waiting" && unackedWaiting > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-700 dark:text-amber-300">
+                <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-800 dark:text-amber-300">
                   {unackedWaiting}
                 </span>
               )}
@@ -833,8 +833,8 @@ function ItemRow({
                 e.stopPropagation();
                 window.open(item.prUrl, "_blank", "noreferrer");
               }}
-              aria-label="Open the pull request"
-              className="rounded border border-zinc-300 dark:border-zinc-700 px-1.5 py-0.5 text-zinc-700 dark:text-zinc-300 transition-colors hover:border-zinc-500 dark:hover:border-zinc-500"
+              aria-label="PR — open the pull request"
+              className="min-h-6 rounded border border-zinc-300 dark:border-zinc-700 px-2 py-0.5 text-zinc-700 dark:text-zinc-300 transition-colors hover:border-zinc-500 dark:hover:border-zinc-500"
             >
               PR ↗
             </button>
