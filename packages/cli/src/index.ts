@@ -12,7 +12,7 @@ import {
   sendDevinMessage
 } from "attnbox-collectors";
 import { createDaemon, listen, type ReplyResult } from "attnbox-daemon";
-import { sortItems, summarize } from "attnbox-core";
+import { sortItems, summarize, type AttentionItem } from "attnbox-core";
 import { formatList } from "./format.js";
 import { formatDoctor, runDoctor } from "./doctor.js";
 import { formatInstall, installHooks } from "./hooksInstall.js";
@@ -22,7 +22,8 @@ const HELP = `attnbox — unified attention inbox for your AI coding agents
 Usage:
   attnbox            Start the daemon and web inbox (http://127.0.0.1:4820)
   attnbox ls         One-shot: list sessions and who is waiting on you
-                     (--waiting: only items waiting on you; --json: machine output)
+                     (--waiting: only items waiting on you; --all: include
+                     finished sessions; --json: full machine output)
   attnbox hooks      Print the config snippets enabling authoritative status
                      via Claude Code hooks and the Codex notify hook
                      (--install: merge them into your configs, with backups)
@@ -126,7 +127,16 @@ async function main(): Promise<void> {
       console.log(JSON.stringify({ items, summary: s }, null, 2));
       return;
     }
+    const isFinished = (i: AttentionItem): boolean => i.status === "done" || i.status === "idle";
+    let hiddenFinished = 0;
+    if (!args.includes("--waiting") && !args.includes("--all")) {
+      hiddenFinished = items.filter(isFinished).length;
+      items = items.filter((i) => !isFinished(i));
+    }
     console.log(formatList(items));
+    if (hiddenFinished > 0) {
+      console.log(`… ${hiddenFinished} finished session${hiddenFinished > 1 ? "s" : ""} hidden — \`attnbox ls --all\` to show`);
+    }
     console.log(`\n${s.waiting} waiting on you · ${s.working} working · ${s.total} total`);
     return;
   }
