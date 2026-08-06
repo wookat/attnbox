@@ -40,7 +40,9 @@ const MIME: Record<string, string> = {
   ".svg": "image/svg+xml",
   ".png": "image/png",
   ".ico": "image/x-icon",
-  ".json": "application/json; charset=utf-8"
+  ".json": "application/json; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
+  ".webmanifest": "application/manifest+json; charset=utf-8"
 };
 
 /** Localhost-only attention inbox daemon: JSON API + SSE + static web UI. */
@@ -237,7 +239,7 @@ function serveStatic(pathname: string, res: ServerResponse, webDist: string | un
     // SPA fallback
     const index = join(webDist, "index.html");
     if (existsSync(index)) {
-      res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-cache" });
       res.end(readFileSync(index));
     } else {
       res.writeHead(404);
@@ -245,7 +247,11 @@ function serveStatic(pathname: string, res: ServerResponse, webDist: string | un
     }
     return;
   }
-  res.writeHead(200, { "content-type": MIME[extname(path)] ?? "application/octet-stream" });
+  res.writeHead(200, {
+    "content-type": MIME[extname(path)] ?? "application/octet-stream",
+    // Vite content-hashes everything under /assets/; the rest (index.html, sw.js, manifest) must revalidate.
+    "cache-control": rel.startsWith("assets/") ? "public, max-age=31536000, immutable" : "no-cache"
+  });
   res.end(readFileSync(path));
 }
 
