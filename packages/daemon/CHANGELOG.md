@@ -1,5 +1,11 @@
 # attnbox-daemon
 
+## 0.2.1
+
+### Patch Changes
+
+- cad56a6: First-load polish and transport fixes: the inbox shows a loading skeleton instead of a false "No one is waiting on you" flash before the first snapshot arrives; hashed static assets are served with immutable cache headers (index.html/sw.js revalidate); added meta description and robots.txt.
+
 ## 0.2.0
 
 ### Minor Changes
