@@ -1,5 +1,17 @@
 # attnbox
 
+## 0.4.0
+
+### Minor Changes
+
+- cfea37d: New waiting webhook: set `ATTNBOX_WEBHOOK_URL` and the daemon POSTs `{ event: "waiting", item }` each time an agent newly starts waiting on you — the extension point for Slack/ntfy/自动化 without a push server. Fire-and-forget: webhook failures never affect the inbox, and items already waiting at startup don't fire.
+
+### Patch Changes
+
+- 5f8ee87: New `p` shortcut opens the selected item's pull request, giving keyboard users the same secondary PR action the "PR ↗" chip gives pointer users.
+- Updated dependencies [cfea37d]
+  - attnbox-daemon@0.3.0
+
 ## 0.3.9
 
 ### Patch Changes
