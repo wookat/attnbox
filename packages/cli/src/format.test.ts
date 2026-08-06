@@ -28,6 +28,19 @@ describe("formatItem", () => {
     expect(long.split("\n")[1]).toHaveLength(104);
     expect(long).toContain("…");
   });
+  it("renders the action URL for waiting items, with the PR as a secondary link", () => {
+    const out = formatItem({
+      ...item,
+      url: "https://app.devin.ai/sessions/abc",
+      prUrl: "https://github.com/o/r/pull/1"
+    });
+    expect(out).toContain("\n  └ https://app.devin.ai/sessions/abc  (PR: https://github.com/o/r/pull/1)");
+    const noPr = formatItem({ ...item, url: "https://app.devin.ai/sessions/abc" });
+    expect(noPr).toContain("\n  └ https://app.devin.ai/sessions/abc");
+    expect(noPr).not.toContain("(PR:");
+    const notWaiting = formatItem({ ...item, status: "idle", url: "https://x.test/" });
+    expect(notWaiting).not.toContain("https://x.test/");
+  });
 });
 
 describe("formatList", () => {
