@@ -1,5 +1,11 @@
 # attnbox-collectors
 
+## 0.2.3
+
+### Patch Changes
+
+- 6c10158: Devin collector now paginates the sessions list (up to 1,000 sessions) instead of silently truncating at the API's first page of 100 — waiting sessions beyond the first page are no longer missed.
+
 ## 0.2.2
 
 ### Patch Changes
