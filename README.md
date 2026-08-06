@@ -8,6 +8,7 @@ Website & docs: **https://attnbox.zalize.com**
 - **Cloud-aware**: cloud agents are polled via their public APIs (Devin today, plus a GitHub review-requested fallback; native Cursor Cloud Agents and GitHub Copilot coding agent support planned — see [docs/LIMITS.md](docs/LIMITS.md)).
 - **Privacy-first**: everything stays on your machine. The daemon binds to `127.0.0.1`; cloud API keys are read from your environment and only ever sent to their own vendor.
 - **Mobile-first web UI**: a responsive inbox (Tailwind), streamed live over SSE, installable as a PWA with optional browser notifications when an agent starts waiting on you.
+- **Bring-your-own channel**: set `ATTNBOX_WEBHOOK_URL` and the daemon POSTs `{ event: "waiting", item }` to your endpoint (ntfy, a Slack relay, automation) each time an agent newly starts waiting — works with the inbox closed, no push server involved.
 
 ## Quick start
 
