@@ -73,7 +73,8 @@ describe("DevinCollector", () => {
     const collector = new DevinCollector("key", "https://api.devin.ai/v1", paged);
     const items = await collector.collect();
     expect(items).toHaveLength(103);
-    expect(requested.filter((u) => u.includes("/sessions?"))).toHaveLength(2);
+    // deep pages beyond the first short one are discarded even though they were prefetched
+    expect(items.filter((i) => i.id === "devin:devin-200")).toHaveLength(0);
     // the waiting session that lives beyond page 1 is not silently dropped
     expect(items.find((i) => i.id === "devin:devin-100")?.status).toBe("waiting");
   });
@@ -97,10 +98,10 @@ describe("DevinCollector", () => {
     }) as typeof fetch;
     const collector = new DevinCollector("key", "https://api.devin.ai/v1", paged);
     expect(await collector.collect()).toHaveLength(101);
-    expect(listCalls).toHaveLength(2);
+    const afterFirst = listCalls.length;
     expect(await collector.collect()).toHaveLength(101);
     // second cycle only re-fetched page 1; the deep crawl was served from cache
-    expect(listCalls).toHaveLength(3);
+    expect(listCalls.length).toBe(afterFirst + 1);
   });
 
   it("keeps already-fetched pages when a later page fails", async () => {

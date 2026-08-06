@@ -39,9 +39,14 @@ export class DevinCollector implements Collector {
     if (this.deepCache && Date.now() - this.deepCache.fetchedAt < DEEP_REFRESH_MS) {
       return this.finish(dedupe([...first, ...this.deepCache.sessions]));
     }
+    // a full first page means the org has a deep backlog: crawl the remaining pages in
+    // one parallel round-trip and keep the contiguous prefix up to the first short or
+    // failed page (deep crawls only happen for 100+ session orgs, and at most every 30 s)
+    const batch = await Promise.all(
+      Array.from({ length: MAX_SESSION_PAGES - 1 }, (_, i) => this.fetchPage((i + 1) * PAGE_SIZE))
+    );
     const deep: DevinSession[] = [];
-    for (let page = 1; page < MAX_SESSION_PAGES; page++) {
-      const pageSessions = await this.fetchPage(page * PAGE_SIZE);
+    for (const pageSessions of batch) {
       if (pageSessions === undefined) break;
       deep.push(...pageSessions);
       if (pageSessions.length < PAGE_SIZE) break;
