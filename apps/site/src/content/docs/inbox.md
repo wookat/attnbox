@@ -60,6 +60,16 @@ The bell toggle enables browser notifications: the moment an agent starts waitin
 
 Notifications carry a **✓ Done** action button (browsers with service-worker notification actions — Chrome, Edge, Android): click it to mark the item handled straight from the notification, without opening the inbox. The ack is persisted by the daemon and synced to your other devices. Browsers without action support show the same notification without the button.
 
+## Webhook (bring your own channel)
+
+Browser notifications only fire while the inbox is open somewhere — by design there is no push server. If you want a channel that works with the inbox closed, point the daemon at your own endpoint:
+
+```bash
+ATTNBOX_WEBHOOK_URL=https://ntfy.sh/my-topic attnbox
+```
+
+Each time an agent *newly* starts waiting on you, the daemon POSTs `{ "event": "waiting", "item": { … } }` (the same item shape as `/api/items`) to that URL — wire it to ntfy, a Slack incoming webhook relay, or anything else. Fire-and-forget: webhook failures never affect the inbox, and sessions already waiting when the daemon starts don't fire.
+
 ## From your phone
 
 The daemon binds `127.0.0.1` by default — nothing leaves your machine. To open the inbox from another device (e.g. install the PWA on your phone):

@@ -1,4 +1,5 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -69,6 +70,35 @@ describe("daemon", () => {
     const { value } = await reader.read();
     expect(new TextDecoder().decode(value)).toContain('"demo:1"');
     await reader.cancel();
+  });
+
+  it("POSTs a webhook when an item newly enters waiting, not for items waiting at startup", async () => {
+    const received: unknown[] = [];
+    const hook = createServer((req, res) => {
+      const chunks: Buffer[] = [];
+      req.on("data", (c: Buffer) => chunks.push(c));
+      req.on("end", () => {
+        received.push(JSON.parse(Buffer.concat(chunks).toString("utf8")));
+        res.end();
+      });
+    });
+    await new Promise<void>((resolve) => hook.listen(0, "127.0.0.1", resolve));
+    const addr = hook.address();
+    const hookUrl = `http://127.0.0.1:${typeof addr === "object" && addr !== null ? addr.port : 0}/`;
+
+    let items: AttentionItem[] = [waitingItem];
+    const collector: Collector = { name: "stub", collect: async () => items };
+    daemon = createDaemon({ collectors: [collector], intervalMs: 60_000, webhookUrl: hookUrl });
+    await daemon.ready;
+    await daemon.refresh();
+    expect(received).toHaveLength(0);
+
+    items = [waitingItem, { ...waitingItem, id: "demo:2", title: "New question" }];
+    await daemon.refresh();
+    await new Promise((r) => setTimeout(r, 100));
+    expect(received).toHaveLength(1);
+    expect(received[0]).toMatchObject({ event: "waiting", item: { id: "demo:2" } });
+    await new Promise<void>((resolve) => hook.close(() => resolve()));
   });
 
   it("survives a collector that throws", async () => {

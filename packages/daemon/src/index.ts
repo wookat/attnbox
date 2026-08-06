@@ -23,6 +23,8 @@ export interface DaemonOptions {
   ackFile?: string;
   /** When set, every /api/* request must present this token (Bearer header or ?token= query). */
   token?: string;
+  /** POSTed `{ event: "waiting", item }` each time an item newly enters waiting. Fire-and-forget, fail-soft. */
+  webhookUrl?: string;
 }
 
 export interface Daemon {
@@ -66,6 +68,26 @@ export function createDaemon(options: DaemonOptions): Daemon {
     broadcast();
   }
 
+  let waitingSeen: Set<string> | undefined;
+
+  function fireWebhooks(next: AttentionItem[]): void {
+    const nowWaiting = new Set(next.filter((i) => i.status === "waiting").map((i) => i.id));
+    // the first pass only records state — items already waiting at startup are not "new"
+    if (options.webhookUrl !== undefined && waitingSeen !== undefined) {
+      for (const item of next) {
+        if (item.status === "waiting" && !waitingSeen.has(item.id)) {
+          void fetch(options.webhookUrl, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ event: "waiting", item }),
+            signal: AbortSignal.timeout(5000)
+          }).catch(() => undefined);
+        }
+      }
+    }
+    waitingSeen = nowWaiting;
+  }
+
   async function refresh(): Promise<AttentionItem[]> {
     const results = await Promise.all(
       options.collectors.map(async (c) => {
@@ -77,6 +99,7 @@ export function createDaemon(options: DaemonOptions): Daemon {
       })
     );
     const next = sortItems(results.flat());
+    fireWebhooks(next);
     const changed = JSON.stringify(next) !== JSON.stringify(snapshot);
     snapshot = next;
     if (changed) broadcast();
