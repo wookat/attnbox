@@ -100,6 +100,7 @@ interface DevinSession {
 function toItem(session: DevinSession): AttentionItem {
   const status = mapStatus(session.status_enum ?? session.status);
   const url = session.pull_request?.url ?? sessionUrl(session.session_id);
+  const project = projectFromPrUrl(session.pull_request?.url ?? undefined);
   const item: AttentionItem = {
     id: `devin:${session.session_id}`,
     agent: "devin",
@@ -108,6 +109,7 @@ function toItem(session: DevinSession): AttentionItem {
     confidence: "authoritative",
     title: session.title ?? session.session_id,
     url,
+    ...(project ? { project } : {}),
     ...(session.updated_at ? { lastActivityAt: session.updated_at } : {})
   };
   if (status === "waiting") item.attention = "answer";
@@ -131,6 +133,11 @@ export function mapStatus(statusEnum: string | undefined): SessionStatus {
     default:
       return "unknown";
   }
+}
+
+export function projectFromPrUrl(url?: string): string | undefined {
+  const match = url?.match(/^https?:\/\/[^/]+\/([^/]+\/[^/]+)\/(?:pull|merge_requests)\//);
+  return match?.[1];
 }
 
 function sessionUrl(sessionId: string): string {

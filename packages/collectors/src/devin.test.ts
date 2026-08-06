@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DevinCollector, MAX_DETAIL_FETCHES_PER_CYCLE, mapStatus, sendDevinMessage } from "./devin.js";
+import { DevinCollector, MAX_DETAIL_FETCHES_PER_CYCLE, mapStatus, projectFromPrUrl, sendDevinMessage } from "./devin.js";
 
 function fakeFetch(body: unknown, ok = true): typeof fetch {
   return (async () =>
@@ -34,7 +34,8 @@ describe("DevinCollector", () => {
       status: "waiting",
       attention: "answer",
       confidence: "authoritative",
-      url: "https://github.com/o/r/pull/1"
+      url: "https://github.com/o/r/pull/1",
+      project: "o/r"
     });
   });
 
@@ -184,6 +185,21 @@ describe("sendDevinMessage", () => {
       throw new Error("network");
     }) as unknown as typeof fetch;
     expect((await sendDevinMessage("k", "devin-abc", "hi", undefined, down)).error).toBe("network error");
+  });
+});
+
+describe("projectFromPrUrl", () => {
+  it("derives owner/repo from a GitHub PR url", () => {
+    expect(projectFromPrUrl("https://github.com/wookat/attnbox/pull/64")).toBe("wookat/attnbox");
+  });
+
+  it("derives the project from a GitLab merge request url", () => {
+    expect(projectFromPrUrl("https://gitlab.com/grp/proj/merge_requests/2")).toBe("grp/proj");
+  });
+
+  it("returns undefined without a pull request", () => {
+    expect(projectFromPrUrl(undefined)).toBeUndefined();
+    expect(projectFromPrUrl("https://app.devin.ai/sessions/abc")).toBeUndefined();
   });
 });
 
