@@ -80,11 +80,25 @@ function notificationsSupported(): boolean {
   return typeof Notification !== "undefined";
 }
 
+function readSnapshot(): Payload | null {
+  try {
+    const raw = localStorage.getItem("attnbox:snapshot");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Payload;
+    return Array.isArray(parsed.items) && parsed.summary ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function App() {
-  const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
-  const [loaded, setLoaded] = useState(false);
+  const cachedSnapshot = useRef(readSnapshot());
+  const [data, setData] = useState<Payload>(
+    () => cachedSnapshot.current ?? { items: [], summary: { total: 0, waiting: 0, working: 0 } }
+  );
+  const [loaded, setLoaded] = useState(() => cachedSnapshot.current !== null);
   const [connected, setConnected] = useState(false);
-  const everConnected = useRef(false);
+  const everConnected = useRef(cachedSnapshot.current !== null);
   const [filter, setFilter] = useState<Filter>(() => {
     const saved = localStorage.getItem("attnbox:filter");
     return FILTERS.some((f) => f.key === saved) ? (saved as Filter) : "all";
@@ -232,8 +246,16 @@ export default function App() {
     };
     source.onerror = () => setConnected(false);
     source.onmessage = (e) => {
-      setData(JSON.parse(e.data as string) as Payload);
+      const raw = e.data as string;
+      setData(JSON.parse(raw) as Payload);
       setLoaded(true);
+      if (raw.length <= 2_000_000) {
+        try {
+          localStorage.setItem("attnbox:snapshot", raw);
+        } catch {
+          // storage full — live data still renders
+        }
+      }
     };
     return () => source.close();
   }, []);
