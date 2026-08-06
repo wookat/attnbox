@@ -1,5 +1,11 @@
 # attnbox-daemon
 
+## 0.3.1
+
+### Patch Changes
+
+- 6229c9d: The waiting webhook no longer re-fires every waiting item after a collector outage: an item leaves the "already notified" set only when observed in a non-waiting status, not when it is merely absent from a collection pass.
+
 ## 0.3.0
 
 ### Minor Changes
