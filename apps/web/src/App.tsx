@@ -105,6 +105,7 @@ export default function App() {
   const [grouped, setGrouped] = useState(() => localStorage.getItem("attnbox:group") === "on");
   const [showFinished, setShowFinished] = useState(false);
   const [replyingId, setReplyingId] = useState<string | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(() => new Set());
   const searchRef = useRef<HTMLInputElement>(null);
   const seenWaiting = useRef<Set<string> | null>(null);
@@ -255,6 +256,15 @@ export default function App() {
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.key === "?") {
+        e.preventDefault();
+        setShowHelp((s) => !s);
+        return;
+      }
+      if (e.key === "Escape" && showHelp) {
+        setShowHelp(false);
+        return;
+      }
       if (e.key === "/") {
         e.preventDefault();
         searchRef.current?.focus();
@@ -300,7 +310,7 @@ export default function App() {
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [ordered, selectedId, acked]);
+  }, [ordered, selectedId, acked, showHelp]);
 
   function rowProps(item: AttentionItem) {
     return {
@@ -554,12 +564,73 @@ export default function App() {
         )}
 
         <footer className="mt-10 text-center text-[11px] text-zinc-600 dark:text-zinc-400">
+          <button
+            type="button"
+            onClick={() => setShowHelp(true)}
+            className="hidden underline hover:text-zinc-900 dark:hover:text-zinc-200 sm:inline"
+          >
+            press ? for shortcuts
+          </button>
+          <span className="hidden sm:inline"> · </span>
           local-first · data never leaves this machine ·{" "}
           <a className="underline hover:text-zinc-600 dark:hover:text-zinc-400" href="https://github.com/wookat/attnbox" target="_blank" rel="noreferrer">
             github.com/wookat/attnbox
           </a>
         </footer>
       </main>
+      {showHelp && <ShortcutHelp onClose={() => setShowHelp(false)} />}
+    </div>
+  );
+}
+
+const SHORTCUTS: [string, string][] = [
+  ["j / ↓", "Next item"],
+  ["k / ↑", "Previous item"],
+  ["↵ Enter", "Open the selected session"],
+  ["e", "Mark the selected item done / undone"],
+  ["r", "Reply to the selected Devin session"],
+  ["/", "Focus search"],
+  ["Esc", "Clear search & selection"],
+  ["?", "Show / hide this help"]
+];
+
+function ShortcutHelp({ onClose }: { onClose: () => void }) {
+  return (
+    <div
+      className="fixed inset-0 z-20 grid place-items-center bg-zinc-950/40 p-4 dark:bg-zinc-950/60"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Keyboard shortcuts"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-5 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
+      >
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Keyboard shortcuts</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="grid size-7 place-items-center rounded-full text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          >
+            ✕
+          </button>
+        </div>
+        <dl className="space-y-2">
+          {SHORTCUTS.map(([keys, desc]) => (
+            <div key={keys} className="flex items-center justify-between gap-4 text-sm">
+              <dd className="text-zinc-700 dark:text-zinc-300">{desc}</dd>
+              <dt>
+                <kbd className="rounded-md border border-zinc-300 bg-zinc-100 px-1.5 py-0.5 font-mono text-xs text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                  {keys}
+                </kbd>
+              </dt>
+            </div>
+          ))}
+        </dl>
+      </div>
     </div>
   );
 }
