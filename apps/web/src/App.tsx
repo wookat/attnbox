@@ -282,7 +282,13 @@ export default function App() {
       if (list) list.push(item);
       else map.set(key, [item]);
     }
-    return [...map.entries()];
+    const activeCount = (items: AttentionItem[]): number => items.filter((i) => !isFinished(i)).length;
+    return [...map.entries()].sort(([aName, aItems], [bName, bItems]) => {
+      const aFallback = aName.startsWith("(");
+      const bFallback = bName.startsWith("(");
+      if (aFallback !== bFallback) return aFallback ? 1 : -1;
+      return activeCount(bItems) - activeCount(aItems) || aName.localeCompare(bName);
+    });
   }, [visible, acked]);
 
   useEffect(() => {
@@ -572,6 +578,7 @@ export default function App() {
                         return next;
                       })
                     }
+                    aria-expanded={!collapsed.has(name)}
                     className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                   >
                     <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
