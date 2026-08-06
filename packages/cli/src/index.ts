@@ -40,6 +40,11 @@ Options:
                      http://<host>:<port>/?token=<token>. Prefer a private
                      tailnet/VPN over exposing a LAN port.
 
+Environment:
+  ATTNBOX_WEBHOOK_URL  POST { event: "waiting", item } to this URL each time
+                       an agent newly starts waiting on you (fire-and-forget;
+                       webhook failures never affect the inbox).
+
 Data stays on this machine. Cloud collectors activate only when their API
 keys are configured (e.g. DEVIN_API_KEY).`;
 
@@ -176,7 +181,8 @@ async function main(): Promise<void> {
     collectors,
     ...(dist ? { webDist: dist } : {}),
     ...(reply ? { reply } : {}),
-    ...(!loopback && token ? { token } : {})
+    ...(!loopback && token ? { token } : {}),
+    ...(process.env["ATTNBOX_WEBHOOK_URL"] ? { webhookUrl: process.env["ATTNBOX_WEBHOOK_URL"] } : {})
   });
   await daemon.ready;
   let boundPort: number;
