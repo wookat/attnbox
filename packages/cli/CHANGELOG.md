@@ -1,5 +1,15 @@
 # attnbox
 
+## 0.3.4
+
+### Patch Changes
+
+- 2b47a5f: `attnbox ls` hides finished sessions (done/idle) by default with a "… N finished sessions hidden — `attnbox ls --all` to show" note; `--all` restores the full listing, `--json` always emits everything.
+- be8b506: The web inbox now follows your system theme: full light theme (WCAG AA verified) alongside the existing dark theme, switching automatically with prefers-color-scheme.
+- 37da279: Press `?` in the web inbox to see all keyboard shortcuts in an accessible help overlay — the keyboard triage flow (j/k, e, r, Enter) is now discoverable.
+- 7de8be5: The web inbox header now has a theme toggle (system / light / dark) — the default still follows your OS, and a manual choice persists in the browser with no flash on reload.
+- 2a9cc32: Reopening the inbox (e.g. the installed PWA) without a reachable daemon now shows the last known state under the reconnecting banner, instead of an endless loading skeleton.
+
 ## 0.3.3
 
 ### Patch Changes
