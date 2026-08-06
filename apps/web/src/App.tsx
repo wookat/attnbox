@@ -582,7 +582,9 @@ export default function App() {
                     className="mb-2 flex w-full items-center gap-1.5 text-left text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
                   >
                     <span className="text-[10px]">{collapsed.has(name) ? "▸" : "▾"}</span>
-                    <span className="truncate">{name}</span>
+                    <span className="truncate">
+                      {name.startsWith("(") ? `${name.slice(1, -1)} · no project` : name}
+                    </span>
                     <span className="text-zinc-600 dark:text-zinc-400">{items.length}</span>
                   </button>
                   {!collapsed.has(name) && (
@@ -749,7 +751,8 @@ function ReplyBox({ item, onSent, onClose }: { item: AttentionItem; onSent: () =
           if (e.key === "Escape") onClose();
           if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) void send();
         }}
-        placeholder="Reply to this agent… (⌘↵ to send, Esc to cancel)"
+        placeholder="Reply to this agent…"
+        title="⌘↵ / Ctrl+↵ to send, Esc to cancel"
         aria-label={`Reply to ${item.title}`}
         className="min-w-0 flex-1 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white/60 dark:bg-zinc-950/60 px-2.5 py-1.5 text-xs text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 dark:placeholder:text-zinc-600 focus:border-zinc-400 dark:focus:border-zinc-500 focus:outline-none"
       />
