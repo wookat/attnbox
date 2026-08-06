@@ -1,5 +1,11 @@
 # attnbox-core
 
+## 0.2.1
+
+### Patch Changes
+
+- 0a0e925: Waiting Devin cards get a secondary "PR ↗" link: the primary link still goes to the session (where you can answer), but the pull request is one click away again.
+
 ## 0.2.0
 
 ### Minor Changes

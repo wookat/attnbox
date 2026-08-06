@@ -1,5 +1,14 @@
 # attnbox-daemon
 
+## 0.2.5
+
+### Patch Changes
+
+- ad33751: SSE snapshots and /api/items are gzip-compressed for clients that accept it — measured wire cost at 1,000 sessions drops from ~757 KB/min to ~186 KB/min per open tab.
+- Updated dependencies [0a0e925]
+  - attnbox-core@0.2.1
+  - attnbox-collectors@0.2.5
+
 ## 0.2.4
 
 ### Patch Changes

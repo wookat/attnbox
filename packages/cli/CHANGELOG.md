@@ -1,5 +1,17 @@
 # attnbox
 
+## 0.3.9
+
+### Patch Changes
+
+- 0a0e925: Waiting Devin cards get a secondary "PR ↗" link: the primary link still goes to the session (where you can answer), but the pull request is one click away again.
+- 714f356: Fix three accessibility regressions caught by Lighthouse after round 63: the "PR ↗" chip's accessible name now contains its visible text, its touch target meets the 24px minimum, and the waiting-count badge passes AA contrast in light theme.
+- Updated dependencies [0a0e925]
+- Updated dependencies [ad33751]
+  - attnbox-core@0.2.1
+  - attnbox-collectors@0.2.5
+  - attnbox-daemon@0.2.5
+
 ## 0.3.8
 
 ### Patch Changes
