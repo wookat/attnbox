@@ -82,9 +82,19 @@ describe("runDoctor", () => {
     expect(down.find((c) => c.name === "github-pr")?.level).toBe("warn");
   });
 
+  it("reports the webhook channel", async () => {
+    const home = tempHome();
+    const off = await runDoctor({ home, env: {}, fetchImpl: okFetch() });
+    expect(off.find((c) => c.name === "webhook")?.level).toBe("off");
+    const on = await runDoctor({ home, env: { ATTNBOX_WEBHOOK_URL: "https://ntfy.sh/topic?tpl=yes&title=t" }, fetchImpl: okFetch() });
+    expect(on.find((c) => c.name === "webhook")).toMatchObject({ level: "ok", detail: "newly-waiting items POST to https://ntfy.sh/topic" });
+    const bad = await runDoctor({ home, env: { ATTNBOX_WEBHOOK_URL: "not a url" }, fetchImpl: okFetch() });
+    expect(bad.find((c) => c.name === "webhook")?.level).toBe("warn");
+  });
+
   it("formats aligned readable output", async () => {
     const out = formatDoctor(await runDoctor({ home: tempHome(), env: {}, fetchImpl: okFetch() }));
     expect(out).toContain("– claude-code");
-    expect(out.split("\n").length).toBe(6);
+    expect(out.split("\n").length).toBe(7);
   });
 });

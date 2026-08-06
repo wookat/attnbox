@@ -118,6 +118,27 @@ export async function runDoctor(opts: DoctorEnv = {}): Promise<DoctorCheck[]> {
     checks.push({ name: "github-pr", level, detail });
   }
 
+  const webhookUrl = env["ATTNBOX_WEBHOOK_URL"];
+  if (!webhookUrl) {
+    checks.push({
+      name: "webhook",
+      level: "off",
+      detail: "ATTNBOX_WEBHOOK_URL not set — no push channel while the inbox is closed"
+    });
+  } else {
+    let url: URL | undefined;
+    try {
+      url = new URL(webhookUrl);
+    } catch {
+      url = undefined;
+    }
+    checks.push(
+      url
+        ? { name: "webhook", level: "ok", detail: `newly-waiting items POST to ${url.origin}${url.pathname}` }
+        : { name: "webhook", level: "warn", detail: "ATTNBOX_WEBHOOK_URL is not a valid URL — webhook posts will all fail" }
+    );
+  }
+
   return checks;
 }
 
