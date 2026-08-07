@@ -196,6 +196,10 @@
 
 kookr 增补 operator 可调 `quotaHeadroomThreshold`（节奏不变，仍无云端）；kelpie 桌面客户端高频冲刺（15 分钟 5 提交：provider 标识/会话元数据/转录打磨），仍绑定 herdr；ccmux/coslash/herdr-island 无新推送；三日窗口新进入者扫描为空——数批以来首个安静窗口。差异化不变，P2 无触发。详见 `docs/gap/GAP-ROUND-159.md`。
 
+### 第十一批跟进（ROUND-168）
+
+kookr 仍极高频（单日 15+ 提交：Sweep 确认弹窗焦点陷阱、plugin dir 契约测试、task-tail 紧凑序列化），无云端迹象；ccmux 补 opencode 时间戳修复并把 relay 技能从 dispatch 拆分（移交面继续演进）；coslash 发布 v0.0.1 README（"attention layer for coding agents"定位落文档，git commit 监控向，仍仅本地）；kelpie 桌面端继续冲刺（composer 布局对齐 Codex desktop、provider/model 标识），仍绑 herdr。三日窗口新进入者扫描为空（连续第二个安静窗口）。跨 runtime+云端零侵入聚合差异化不变，P2 无触发。详见 `docs/gap/GAP-ROUND-168.md`。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
