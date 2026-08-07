@@ -120,6 +120,24 @@
 
 结论：定位无变化（云端聚合仍无对手）；kookr 迭代速度值得每轮竞品扫描必查。
 
+## 四之七、2026-08 第五批扫描（2026-08-07 晚，ROUND-122）
+
+主要对手动向：
+
+- **kookr**：持续高频（当日又 +2 merge：pty fd 泄漏修复、完成态历史与热路径隔离）；方向仍是自有编排 fleet 的稳定性/性能，无云端聚合迹象。
+- **ccmux**：TUI 打磨（对话框样式统一）；注意力面无新动向。
+- kelpie/coslash：无新动向。
+
+新进入者（均 0 star、Python、当日索引）：
+
+| 项目 | 定位 | 与我们的差异 |
+|---|---|---|
+| [davidnietzsche/david-claude-hud](https://github.com/davidnietzsche/david-claude-hud) | macOS 常驻 HUD："哪个 Claude 会话刚完成/在等你" | 单 agent（Claude）、单平台（macOS）、无云端 |
+| [joshlindsey-ops/agent-inbox-dispatcher](https://github.com/joshlindsey-ops/agent-inbox-dispatcher) | "agent inbox" 派发器（AI 收件箱+关联 token） | 是 agent 间消息总线而非人的注意力面 |
+| [LeslieWo/cc-office](https://github.com/LeslieWo/cc-office) | Mac 上所有 Claude Code 窗口实况："谁在干活、谁在等你、谁卡住了" | 单 agent、单平台、窗口级视角、无云端 |
+
+观察：**"who is waiting on you" 已成为新项目 README 的标准句式**（cc-office/claude-hud 原文），赛道语言完全收敛到我们 round-1 的定位表述；但新进入者仍全部停留在"单 agent + 单平台 + 本地"，云端聚合 + 跨 agent 统一视图的差异化持续无对手。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
