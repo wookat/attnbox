@@ -514,7 +514,11 @@ export default function App() {
             >
               {label}
               {key === "waiting" && unackedWaiting > 0 && (
-                <span className="ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] text-amber-800 dark:text-amber-300">
+                <span
+                  className={`ml-1.5 rounded-full bg-amber-500/20 px-1.5 text-[11px] ${
+                    filter === key ? "text-amber-300 dark:text-amber-800" : "text-amber-800 dark:text-amber-300"
+                  }`}
+                >
                   {unackedWaiting}
                 </span>
               )}
