@@ -115,13 +115,21 @@ export function createDaemon(options: DaemonOptions): Daemon {
     return snapshot;
   }
 
-  function payloadJson(): string {
-    return JSON.stringify({ items: snapshot, summary: summarize(snapshot), acked });
+  function payloadJson(slim = false): string {
+    // done sessions are the bulk of a large org's snapshot but are only shown on
+    // demand; slim consumers fetch them lazily from /api/items instead of paying
+    // to parse them in every event
+    const items = slim ? snapshot.filter((i) => i.status !== "done") : snapshot;
+    return JSON.stringify({ items, summary: summarize(snapshot), acked, ...(slim ? { slim: true } : {}) });
   }
 
   function broadcast(): void {
-    const payload = `data: ${payloadJson()}\n\n`;
-    for (const client of sseClients) client.write(payload);
+    let full: string | undefined;
+    let slim: string | undefined;
+    for (const client of sseClients) {
+      if (client.slim) client.write(`data: ${(slim ??= payloadJson(true))}\n\n`);
+      else client.write(`data: ${(full ??= payloadJson())}\n\n`);
+    }
   }
 
   function handle(req: IncomingMessage, res: ServerResponse): void {
@@ -156,6 +164,7 @@ export function createDaemon(options: DaemonOptions): Daemon {
       return;
     }
     if (url.pathname === "/api/events") {
+      const slim = url.searchParams.get("slim") === "1";
       res.writeHead(200, {
         "content-type": "text/event-stream",
         "cache-control": "no-cache",
@@ -168,11 +177,11 @@ export function createDaemon(options: DaemonOptions): Daemon {
         // flush per event cuts the wire cost ~10x while EventSource decodes transparently
         const gz = createGzip({ flush: constants.Z_SYNC_FLUSH });
         gz.pipe(res);
-        client = { write: (chunk) => void gz.write(chunk), end: () => gz.end() };
+        client = { slim, write: (chunk) => void gz.write(chunk), end: () => gz.end() };
       } else {
-        client = { write: (chunk) => void res.write(chunk), end: () => res.end() };
+        client = { slim, write: (chunk) => void res.write(chunk), end: () => res.end() };
       }
-      client.write(`data: ${payloadJson()}\n\n`);
+      client.write(`data: ${payloadJson(slim)}\n\n`);
       sseClients.add(client);
       req.on("close", () => sseClients.delete(client));
       return;
@@ -267,6 +276,7 @@ export function createDaemon(options: DaemonOptions): Daemon {
 }
 
 interface SseClient {
+  slim: boolean;
   write(chunk: string): void;
   end(): void;
 }
