@@ -255,16 +255,28 @@ export default function App() {
       setConnected(true);
     };
     source.onerror = () => setConnected(false);
+    let lastRaw: string | undefined;
+    let writeScheduled = false;
     source.onmessage = (e) => {
       const raw = e.data as string;
+      if (raw === lastRaw) return;
+      lastRaw = raw;
       setData(JSON.parse(raw) as Payload);
       setLoaded(true);
-      if (raw.length <= 2_000_000) {
-        try {
-          localStorage.setItem("attnbox:snapshot", raw);
-        } catch {
-          // storage full — live data still renders
-        }
+      if (raw.length <= 2_000_000 && !writeScheduled) {
+        // persist off the critical path: at thousands of sessions the snapshot is ~1 MB,
+        // and a synchronous write on every message shows up as main-thread jank
+        writeScheduled = true;
+        const write = (): void => {
+          writeScheduled = false;
+          try {
+            if (lastRaw !== undefined) localStorage.setItem("attnbox:snapshot", lastRaw);
+          } catch {
+            // storage full — live data still renders
+          }
+        };
+        if ("requestIdleCallback" in window) requestIdleCallback(write, { timeout: 2000 });
+        else setTimeout(write, 500);
       }
     };
     return () => source.close();
