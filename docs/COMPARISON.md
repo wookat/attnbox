@@ -200,6 +200,10 @@ kookr 增补 operator 可调 `quotaHeadroomThreshold`（节奏不变，仍无云
 
 kookr 仍极高频（单日 15+ 提交：Sweep 确认弹窗焦点陷阱、plugin dir 契约测试、task-tail 紧凑序列化），无云端迹象；ccmux 补 opencode 时间戳修复并把 relay 技能从 dispatch 拆分（移交面继续演进）；coslash 发布 v0.0.1 README（"attention layer for coding agents"定位落文档，git commit 监控向，仍仅本地）；kelpie 桌面端继续冲刺（composer 布局对齐 Codex desktop、provider/model 标识），仍绑 herdr。三日窗口新进入者扫描为空（连续第二个安静窗口）。跨 runtime+云端零侵入聚合差异化不变，P2 无触发。详见 `docs/gap/GAP-ROUND-168.md`。
 
+### 第十二批跟进（ROUND-176）
+
+kookr 高频持续（pipelineStarvation 计数入 status、协作 peer URL 拒绝云元数据/link-local——安全面动作，仍无云端聚合）；ccmux 自 relay 拆分后无新推送；coslash 无新推送；kelpie 发布 VISION.md——定位原话 "the operator console for a fleet of coding agents"、"the operator's scarce resource is attention, not terminal windows"（与我们 round-1 注意力定位语言完全同源），并明确单人操作者、herdr/omp 生态内、非托管服务。新进入者一个入档：Innovology/claude-dispatcher（9★，"terminal cockpit for a factory of Claude Code sessions"，tmux+多 repo 分诊 lens，仅 Claude、仅本地、由它 dispatch 的会话）。跨 runtime+原生会话+云端零侵入聚合仍无对手，P2 无触发。详见 `docs/gap/GAP-ROUND-176.md`。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
