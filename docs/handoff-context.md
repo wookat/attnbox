@@ -1,6 +1,6 @@
 # Handoff context — attnbox
 
-按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-126）。
+按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-140）。
 
 ## 项目一句话
 
@@ -47,6 +47,7 @@ SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 ag
 
 ## 进行中/下一步
 
-- 无未合并 PR 时按循环继续；竞品每轮必查 kookr（迭代速度极高，round-115 示警）+ kelpie/coslash/ccmux/omnigent 动向。ccmux 已用 pane 捕获修复 Escape 陈旧 waiting（我们零侵入约束下不可用，round-72 不修决策成立，LIMITS 已注明）。
+- 无未合并 PR 时按循环继续；竞品每轮必查 kookr（迭代速度极高，round-115 示警）+ agent-deck（round-131 新进入者，本地面重合最高）+ coslash/ccmux/omnigent 动向；kelpie 已 404 退出。ccmux 已修 Escape 陈旧 waiting 并上线 session handoff（round-138）——两个本地对手都在向"注意力+行动/移交"演进，验证 round-109 交接简报观察项方向；其信号依赖 capture-pane，零侵入约束下我们不可用，round-72 不修决策成立。
 - changeset 当前无累积（v0.4.8 已清空）。
-- Rounds 111–125 概要：111 detail 取全 P1（发 v0.4.6）、112/113 修复三面验证、114 文档入档、115 竞品复扫、116 键盘链全通、117 徽章对比度 P1（发 v0.4.7）、118 数据面干净、119 官网 doctor 页对比度 P1、120 交接整备、121 门禁/webhook 复测、122 竞品第五批、123 移动触控走查、124 本地采集器实弹、125 slim SSE P1（发 v0.4.8，daemon 0.4.0）。对外可见性/宣发仍是最大非工程缺口（待老板决策）。
+- Rounds 111–125 概要：111 detail 取全 P1（发 v0.4.6）、112/113 修复三面验证、114 文档入档、115 竞品复扫、116 键盘链全通、117 徽章对比度 P1（发 v0.4.7）、118 数据面干净、119 官网 doctor 页对比度 P1、120 交接整备、121 门禁/webhook 复测、122 竞品第五批、123 移动触控走查、124 本地采集器实弹、125 slim SSE P1（发 v0.4.8，daemon 0.4.0）。
+- Rounds 127–139 概要（全部纯文档、无 P0/P1）：127 官网 slim 边界入档+竞品必查（官网已重建核验）、128 数据面 2,990 全干净、129 slim SSE 端到端实机走查全通、130 axe 复审 10 态 0 违规、131 竞品第六批（agent-deck 入档、kelpie 404 确认）、132 CLI 黄金路径复走全通、133 合并面 soak 回归全绿、134 发布后 Lighthouse perf 中位 92（round-125 增益保持）、135 分诊全流程复走全通、136 MATURITY 刷新至 v0.4.8、137 reply act-in-place 复测全通（受控探针）、138 竞品第七批（ccmux handoff 示警）、139 数据面 3,009 全干净。对外可见性/宣发仍是最大非工程缺口（待老板决策）。
