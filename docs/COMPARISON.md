@@ -154,6 +154,17 @@
 
 观察：新进入者已从"单 agent 单平台"演进到"多 agent 本地 + 终端跳转"，本地面竞争在加密；云端聚合 + 本地/云统一视图差异化仍无对手。agent-deck 的"点击跳转到终端会话"是值得记录的方向（我们 P2 台账已有本地行动面约束——零侵入下 URL 打不开终端，暂无对等能力）。
 
+## 四之九、2026-08 第七批扫描（2026-08-07 深夜，ROUND-138）
+
+主要对手动向：
+
+- **ccmux**（116 star）：注意力面本轮有实质动作——#126 修掉了 Escape 陈旧 waiting（issue #117，用 pane 正面证据即时降级，替代其早期方案），并把"handoff"（把会话上下文移交另一 agent/pane，含投递门禁、来源 cwd 校验、pick 模式）做成了完整功能面。它在向"注意力 + 行动/移交"演进，但仍是 tmux 本地宇宙、无云端 agent。其 stale-waiting 信号依赖 `capture-pane`（侵入式读屏），零侵入约束下我们仍不可用——round-72 不修决策不变，LIMITS 已有措辞无需再改。
+- **kookr**（3 star）：持续高频（PR 已到 #2181），本轮为 TUI 对话框焦点/性能序列化等内部件；仍无云端聚合。每轮必查继续。
+- **agent-deck**：round-131 后继续迭代（GNOME Wayland 焦点连接器、OpenCode prompt 跟踪、新机安装文档）——单人项目在认真推进，仍 0 star、仅 Linux 本地。
+- **coslash**：description 扩写为"attention layer + 会话重建 + handoff brief"（与 round-109 观察项同向），但无提交动作。**kelpie** 仍 404。
+
+观察：两个本地对手（ccmux/coslash）都在向"注意力面之上加行动/移交"演进，验证了我们 round-109 记的 P2 观察项（waiting 交接简报）方向；但全部仍无云端聚合。核心差异化不变，无 P0/P1。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
