@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { AttentionItem, InboxSummary } from "attnbox-core";
+import { sortItems, type AttentionItem, type InboxSummary } from "attnbox-core";
 
 interface Payload {
   items: AttentionItem[];
   summary: InboxSummary;
   acked?: Record<string, string>;
+  /** Slim payloads omit done sessions; they are fetched lazily from /api/items. */
+  slim?: boolean;
 }
 
 type Filter = "all" | "waiting" | "working" | "done";
@@ -92,13 +94,29 @@ function readSnapshot(): Payload | null {
 }
 
 export default function App() {
-  const cachedSnapshot = useRef(readSnapshot());
-  const [data, setData] = useState<Payload>(
-    () => cachedSnapshot.current ?? { items: [], summary: { total: 0, waiting: 0, working: 0 } }
-  );
-  const [loaded, setLoaded] = useState(() => cachedSnapshot.current !== null);
+  const [data, setData] = useState<Payload>({ items: [], summary: { total: 0, waiting: 0, working: 0 } });
+  const [loaded, setLoaded] = useState(false);
+  const loadedRef = useRef(false);
   const [connected, setConnected] = useState(false);
-  const everConnected = useRef(cachedSnapshot.current !== null);
+  const everConnected = useRef(false);
+
+  // The cached snapshot is only needed when the daemon is unreachable, and at
+  // thousands of sessions it is ~1 MB — parsing and rendering it eagerly doubles
+  // startup main-thread work. Give the live SSE snapshot a short head start and
+  // fall back to the cache only if it hasn't arrived.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (loadedRef.current) return;
+      const snap = readSnapshot();
+      if (snap) {
+        loadedRef.current = true;
+        setData(snap);
+        setLoaded(true);
+        everConnected.current = true;
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
   const [filter, setFilter] = useState<Filter>(() => {
     const saved = localStorage.getItem("attnbox:filter");
     return FILTERS.some((f) => f.key === saved) ? (saved as Filter) : "all";
@@ -117,6 +135,7 @@ export default function App() {
     }
   });
   const [grouped, setGrouped] = useState(() => localStorage.getItem("attnbox:group") === "on");
+  const [doneItems, setDoneItems] = useState<AttentionItem[] | null>(null);
   const [showFinished, setShowFinished] = useState(false);
   const [replyingId, setReplyingId] = useState<string | null>(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -259,7 +278,7 @@ export default function App() {
   }, [unackedWaiting]);
 
   useEffect(() => {
-    const source = new EventSource(api("/api/events"));
+    const source = new EventSource(api("/api/events?slim=1"));
     source.onopen = () => {
       everConnected.current = true;
       setConnected(true);
@@ -271,6 +290,7 @@ export default function App() {
       const raw = e.data as string;
       if (raw === lastRaw) return;
       lastRaw = raw;
+      loadedRef.current = true;
       setData(JSON.parse(raw) as Payload);
       setLoaded(true);
       if (raw.length <= 2_000_000 && !writeScheduled) {
@@ -292,9 +312,35 @@ export default function App() {
     return () => source.close();
   }, []);
 
+  // Slim payloads omit done sessions (the bulk of a large org's snapshot); views
+  // that show them fetch the full list once and reuse it until the counts drift.
+  const needDone = filter === "done" || showFinished || query !== "" || grouped;
+  useEffect(() => {
+    if (!data.slim || !needDone || doneItems !== null) return;
+    let cancelled = false;
+    fetch(api("/api/items"))
+      .then((r) => r.json())
+      .then((p: Payload) => {
+        if (!cancelled) setDoneItems(p.items.filter((i) => i.status === "done"));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [data.slim, needDone, doneItems]);
+  useEffect(() => {
+    if (data.slim && doneItems !== null && data.summary.total - data.items.length !== doneItems.length) {
+      setDoneItems(null);
+    }
+  }, [data, doneItems]);
+
+  const allItems = useMemo(
+    () => (data.slim && doneItems !== null && needDone ? sortItems([...data.items, ...doneItems]) : data.items),
+    [data.slim, data.items, doneItems, needDone]
+  );
   const visible = useMemo(
-    () => data.items.filter((i) => matches(i, filter) && matchesQuery(i, query)),
-    [data.items, filter, query]
+    () => allItems.filter((i) => matches(i, filter) && matchesQuery(i, query)),
+    [allItems, filter, query]
   );
   const waiting = visible.filter((i) => i.status === "waiting" && !isAcked(i));
   const rest = visible.filter((i) => i.status !== "waiting" || isAcked(i));
@@ -304,6 +350,10 @@ export default function App() {
   const isFinished = (i: AttentionItem): boolean => i.status === "done" || i.status === "idle";
   const active = collapseFinished ? rest.filter((i) => !isFinished(i)) : rest;
   const finished = collapseFinished ? rest.filter(isFinished) : [];
+  // done sessions missing from a slim payload still count toward the expander label
+  const finishedCount =
+    finished.length +
+    (data.slim && !(needDone && doneItems !== null) ? Math.max(0, data.summary.total - data.items.length) : 0);
   const listed = showFinished || !collapseFinished ? rest : active;
   const groups = useMemo(() => {
     const map = new Map<string, AttentionItem[]>();
@@ -652,14 +702,14 @@ export default function App() {
                   <ItemRow key={item.id} item={item} {...rowProps(item)} />
                 ))}
               </ul>
-              {collapseFinished && finished.length > 0 && (
+              {collapseFinished && finishedCount > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowFinished((s) => !s)}
                   aria-expanded={showFinished}
                   className="mt-3 w-full rounded-xl border border-dashed border-zinc-200 dark:border-zinc-800 px-3 py-2 text-xs text-zinc-600 dark:text-zinc-400 transition hover:border-zinc-400 dark:hover:border-zinc-700 hover:text-zinc-900 dark:hover:text-zinc-200"
                 >
-                  {showFinished ? "Hide" : "Show"} {finished.length} finished session{finished.length > 1 ? "s" : ""}
+                  {showFinished ? "Hide" : "Show"} {finishedCount} finished session{finishedCount > 1 ? "s" : ""}
                 </button>
               )}
             </>

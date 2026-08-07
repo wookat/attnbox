@@ -52,6 +52,31 @@ describe("daemon", () => {
     await reader.cancel();
   });
 
+  it("omits done items from slim SSE payloads but keeps the full summary", async () => {
+    const doneItem: AttentionItem = { ...waitingItem, id: "demo:done", status: "done", title: "finished run" };
+    daemon = createDaemon({ collectors: [stubCollector([waitingItem, doneItem])], intervalMs: 60_000 });
+    await daemon.ready;
+    const port = await listen(daemon, 0);
+    const res = await fetch(`http://127.0.0.1:${port}/api/events?slim=1`, {
+      headers: { "accept-encoding": "identity" }
+    });
+    const reader = res.body!.getReader();
+    const { value } = await reader.read();
+    const text = new TextDecoder().decode(value);
+    const payload = JSON.parse(text.replace(/^data: /, "")) as {
+      items: AttentionItem[];
+      summary: { total: number };
+      slim?: boolean;
+    };
+    expect(payload.slim).toBe(true);
+    expect(payload.items.map((i) => i.id)).toEqual(["demo:1"]);
+    expect(payload.summary.total).toBe(2);
+    await reader.cancel();
+    // /api/items stays full so slim consumers can lazily fetch done sessions
+    const full = (await (await fetch(`http://127.0.0.1:${port}/api/items`)).json()) as { items: AttentionItem[] };
+    expect(full.items).toHaveLength(2);
+  });
+
   it("gzips /api/items and SSE for clients that accept it, plain otherwise", async () => {
     daemon = createDaemon({ collectors: [stubCollector([waitingItem])], intervalMs: 60_000 });
     await daemon.ready;
