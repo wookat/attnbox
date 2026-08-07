@@ -1,6 +1,6 @@
 {
   "name": "attnbox",
-  "version": "0.4.7",
+  "version": "0.4.8",
   "description": "Unified attention inbox for local CLI + cloud AI coding agents — see which agent is waiting on you.",
   "type": "module",
   "bin": {
