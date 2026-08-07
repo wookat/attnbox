@@ -1,6 +1,6 @@
 # Handoff context — attnbox
 
-按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-08（ROUND-160）。
+按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-08（ROUND-170）。
 
 ## 项目一句话
 
@@ -48,9 +48,10 @@ SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 ag
 
 ## 进行中/下一步
 
-- 无未合并 PR 时按循环继续；竞品每轮必查 kookr（迭代速度极高，round-115 示警）+ ccmux + coslash + herdr 系（herdr-island 插件、misty-step/kelpie 桌面端——round-153 起 kelpie 以 herdr 生态 phone-first 分诊台身份回归且高频冲刺）；agent-deck 已 404 退出（round-153，继初代 kelpie 后第二个）；round-144 起关注生态信号——herdr（25.5k★）等头部 runtime 生态出现 waiting-on-you 官方式插件，runtime 自带注意力面会蚕食单 runtime 用户的聚合需求。ccmux 已修 Escape 陈旧 waiting 并上线 session handoff（round-138）——两个本地对手都在向"注意力+行动/移交"演进，验证 round-109 交接简报观察项方向；其信号依赖 capture-pane，零侵入约束下我们不可用，round-72 不修决策成立。
+- 无未合并 PR 时按循环继续；竞品每轮必查 kookr（迭代速度极高，round-115 示警；round-168 单日 15+ 提交）+ ccmux（round-168 relay 技能自 dispatch 拆分，移交面持续演进）+ coslash（round-168 发 v0.0.1 README，定位原话 "attention layer for coding agents"，仅本地）+ herdr 系（misty-step/kelpie 桌面端持续冲刺，仍绑 herdr；herdr-island 原名已搜不到）；agent-deck 已 404 退出（round-153，继初代 kelpie 后第二个）；round-159/168 连续两个三日窗口新进入者扫描为空；round-144 起关注生态信号——herdr（25.5k★）等头部 runtime 生态出现 waiting-on-you 官方式插件，runtime 自带注意力面会蚕食单 runtime 用户的聚合需求。ccmux 已修 Escape 陈旧 waiting 并上线 session handoff（round-138）——两个本地对手都在向"注意力+行动/移交"演进，验证 round-109 交接简报观察项方向；其信号依赖 capture-pane，零侵入约束下我们不可用，round-72 不修决策成立。
 - changeset 当前无累积（v0.4.8 已清空）。
 - Rounds 111–125 概要：111 detail 取全 P1（发 v0.4.6）、112/113 修复三面验证、114 文档入档、115 竞品复扫、116 键盘链全通、117 徽章对比度 P1（发 v0.4.7）、118 数据面干净、119 官网 doctor 页对比度 P1、120 交接整备、121 门禁/webhook 复测、122 竞品第五批、123 移动触控走查、124 本地采集器实弹、125 slim SSE P1（发 v0.4.8，daemon 0.4.0）。
+- Rounds 161–169 概要（全部纯文档、无 P0/P1）：161 本地采集器实弹首次单轮全覆盖三采集器（Claude tool_use→waiting→working、Codex 审批→waiting/approve 带命令预览→idle、Gemini 只报 working/idle 诚实边界成立）、162 axe 复审 10 态 0 违规（与 147 持平）、163 --host 门禁六面+webhook 存量零误 POST（round-150 端口清场坑再次应用）、164 CLI 黄金路径全通（ls --waiting 3.8–5.6s@3,110+）、165 MATURITY 证据刷新至 rounds 156–164、166 分诊全流程复走全通+round-154 搜索空结果观察项 5 连跑不可复现（维持不定级）、167 数据面 3,127 全干净（waiting 20/20 detail+url、中位 14 分钟）、168 竞品第十一批（四盯防全活跃、连续第二个安静窗口）、169 合并面 soak 回归全绿（RSS 平稳 @3,133）。
 - Rounds 151–159 概要（全部纯文档、无 P0/P1）：151 CLI 黄金路径复走全通、152 移动端 Lighthouse perf 中位 94/TBT ≤10ms（round-134 后首测，slim 增益略升）、153 竞品第九批（agent-deck 404、kelpie 依附 herdr 回归）、154 分诊全流程复走全通（附观察项：重度 churn 窗口搜索可短暂空结果，复跑稳定）、155 MATURITY 刷新至 round-155 证据、156 数据面 3,094 全干净（waiting 25/25 detail+url）、157 通知路径实测（实机两次转换恰好各一条 SW 通知+✓ Done，风暴防护成立）、158 合并面 soak 回归全绿（RSS 平稳 @3,105）、159 竞品第十批（kookr/kelpie 双活跃，新进入者扫描首次为空）。
 - Rounds 141–149 概要（全部纯文档、无 P0/P1）：141 --host 门禁+webhook 零误 POST 复测、142 本地采集器实弹（Claude 启发式三态全对）、143 MATURITY 实证行刷新、144 竞品第八批（herdr 25.5k★ 生态出现 waiting-on-you 插件——runtime 自带注意力面成趋势；nMn 自动批准反方案；claude-notify presence-aware 再验证）、145 slim 分诊面 UX 走查全通、146 合并面 soak 回归全绿（RSS 平稳 @3,024）、147 axe 复审 10 态 0 违规（附 done 态标准审计法）、148 数据面 3,069 全干净、149 PWA 离线+SSE 韧性复走全通。
 - Rounds 127–139 概要（全部纯文档、无 P0/P1）：127 官网 slim 边界入档+竞品必查（官网已重建核验）、128 数据面 2,990 全干净、129 slim SSE 端到端实机走查全通、130 axe 复审 10 态 0 违规、131 竞品第六批（agent-deck 入档、kelpie 404 确认）、132 CLI 黄金路径复走全通、133 合并面 soak 回归全绿、134 发布后 Lighthouse perf 中位 92（round-125 增益保持）、135 分诊全流程复走全通、136 MATURITY 刷新至 v0.4.8、137 reply act-in-place 复测全通（受控探针）、138 竞品第七批（ccmux handoff 示警）、139 数据面 3,009 全干净。对外可见性/宣发仍是最大非工程缺口（待老板决策）。
