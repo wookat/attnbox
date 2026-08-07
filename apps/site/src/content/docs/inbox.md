@@ -89,3 +89,5 @@ ATTNBOX_TOKEN=$(openssl rand -hex 24) attnbox --host 0.0.0.0
 Then open `http://<your-machine>:4820/?token=<that token>` on the phone once — the token sticks in that browser and every `/api/*` request (SSE, acks, replies) carries it. Without `ATTNBOX_TOKEN`, `--host` refuses to start.
 
 The token protects the API, not the transport (plain HTTP): prefer a private tailnet/VPN (e.g. Tailscale) over exposing a LAN port.
+
+If the daemon is unreachable when you (re)open the inbox — laptop asleep, tunnel down — the PWA renders the last known snapshot from local storage instead of a blank screen, with the header pill switched from `live` to `offline` so stale data never masquerades as fresh.
