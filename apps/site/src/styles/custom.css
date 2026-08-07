@@ -7,8 +7,8 @@
 
 :root[data-theme="light"] {
   --sl-color-accent-low: #fef3c7;
-  /* amber-700: >= 4.5:1 against white */
-  --sl-color-accent: #b45309;
+  /* darkened amber-700: >= 4.5:1 against both white and the #edeef3 inline-code background (amber-700 was 4.33:1 on the latter) */
+  --sl-color-accent: #a54c08;
   --sl-color-accent-high: #92400e;
 }
 
