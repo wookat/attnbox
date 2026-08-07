@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { AttentionItem } from "attnbox-core";
-import { formatItem, formatList } from "./format.js";
+import { formatAge, formatItem, formatList } from "./format.js";
 
 const item: AttentionItem = {
   id: "claude-code:1",
@@ -40,6 +40,22 @@ describe("formatItem", () => {
     expect(noPr).not.toContain("(PR:");
     const notWaiting = formatItem({ ...item, status: "idle", url: "https://x.test/" });
     expect(notWaiting).not.toContain("https://x.test/");
+  });
+  it("shows how long a waiting item has been waiting, but not for other statuses", () => {
+    const twoHoursAgo = new Date(Date.now() - 2 * 3600 * 1000).toISOString();
+    expect(formatItem({ ...item, lastActivityAt: twoHoursAgo })).toContain("Fix the login bug (2h)");
+    expect(formatItem({ ...item, status: "working", lastActivityAt: twoHoursAgo })).not.toContain("(2h)");
+    expect(formatItem(item)).not.toContain("(NaN");
+  });
+});
+
+describe("formatAge", () => {
+  it("renders compact ages", () => {
+    const now = Date.parse("2026-08-07T12:00:00Z");
+    expect(formatAge("2026-08-07T11:59:30Z", now)).toBe("30s");
+    expect(formatAge("2026-08-07T11:15:00Z", now)).toBe("45m");
+    expect(formatAge("2026-08-07T04:00:00Z", now)).toBe("8h");
+    expect(formatAge("2026-08-04T12:00:00Z", now)).toBe("3d");
   });
 });
 
