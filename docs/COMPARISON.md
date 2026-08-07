@@ -75,6 +75,17 @@
 
 结论：新增竞争都落在 **agent-agent 通信/编排** 象限；"零侵入聚合已有本地会话 + 云端 agent、移动一等公民、隐私默认不出本机"的组合仍无直接对手。需持续监测 ProjectDispatcher/solo 是否长出"发现已有会话"能力。
 
+## 四之三、2026-08 第二批扫描（2026-08-07，README/spec 核对，未实测）
+
+本批发现了迄今**最接近我们定位**的新项目：
+
+| 项目 | 形态 | 与我们的差异 |
+|---|---|---|
+| [Jainil-Gosalia/pulse-protocol](https://github.com/Jainil-Gosalia/pulse-protocol)（Agent Pulse，2026-07-18 建，1 star，Python） | 开放协议 + 参考实现（collector + WebSocket dashboard + 各 agent adapter） | 定位几乎同文案（"One inbox for every AI coding agent… which agent needs you right now"）；覆盖 Claude Code/OpenCode/Kilo/Codex/Cursor 本地 CLI，走 adapter 主动上报（push 协议），**不零侵入发现已有会话、不覆盖云端 agent（Devin 等）**。超出我们的能力：away-mode 远程 Allow/Deny 审批、从面板给 agent 排队 follow-up、"blocked waiting on you" 时长分析、ntfy 推送开箱即用 |
+| [AnkushinDaniil/grove](https://github.com/AnkushinDaniil/grove)（2026-07-20 建，0 star，Go，beta） | 树状 agent 编排器（worktree per task）+ 内嵌 web UI | attention inbox 是其编排树的一个子功能（hook-first "needs you" 检测 + 通知 + 深链）；属"由它启动/编排"象限，不聚合外部已有会话，无云端 agent；移动 PWA 在路线图 |
+
+结论（2026-08-07）：核心差异化（云端 agent 聚合 + 零侵入发现）仍无对手，但 **"unified attention inbox" 赛道开始有直接同文案的进入者**。pulse-protocol 的 away-mode 远程审批与注意力时长分析是值得评估的功能方向（我们对 Devin 已有 act-in-place 回复；本地 agent 的远程审批受零侵入约束，需 hook 双向通道才可行，暂记 P2）。两项目当前 star≈0/1、单人项目，威胁等级低，下轮继续监测。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
