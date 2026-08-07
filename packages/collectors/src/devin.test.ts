@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DevinCollector, MAX_DETAIL_FETCHES_PER_CYCLE, mapStatus, projectFromPrUrl, sendDevinMessage } from "./devin.js";
+import { DevinCollector, DETAIL_FETCH_BATCH, mapStatus, projectFromPrUrl, sendDevinMessage } from "./devin.js";
 
 function fakeFetch(body: unknown, ok = true): typeof fetch {
   return (async () =>
@@ -187,18 +187,24 @@ describe("DevinCollector", () => {
     expect(calls.filter((c) => c.includes("/session/devin-a")).length).toBe(1);
   });
 
-  it("caps uncached detail fetches per cycle and catches up next cycle", async () => {
+  it("fetches every uncached detail in one collect, bounded to batches", async () => {
     const sessions = Array.from({ length: 15 }, (_, i) => ({
       session_id: `devin-${i}`,
       status_enum: "blocked",
       updated_at: "t1"
     }));
     let detailCalls = 0;
+    let inFlight = 0;
+    let maxInFlight = 0;
     const routed = (async (url: RequestInfo | URL) => {
       if (String(url).includes("/sessions")) {
         return { ok: true, json: async () => ({ sessions }) } as Response;
       }
       detailCalls++;
+      inFlight++;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise((r) => setTimeout(r, 1));
+      inFlight--;
       return {
         ok: true,
         json: async () => ({ messages: [{ type: "devin_message", message: "q" }] })
@@ -207,8 +213,9 @@ describe("DevinCollector", () => {
     const collector = new DevinCollector("key", "https://api.devin.ai/v1", routed);
 
     const first = await collector.collect();
-    expect(detailCalls).toBe(MAX_DETAIL_FETCHES_PER_CYCLE);
-    expect(first.filter((i) => i.detail).length).toBe(MAX_DETAIL_FETCHES_PER_CYCLE);
+    expect(detailCalls).toBe(15);
+    expect(first.filter((i) => i.detail).length).toBe(15);
+    expect(maxInFlight).toBeLessThanOrEqual(DETAIL_FETCH_BATCH);
 
     const second = await collector.collect();
     expect(detailCalls).toBe(15);
