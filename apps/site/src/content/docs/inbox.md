@@ -32,7 +32,7 @@ Waiting items show a preview of what the agent actually needs, right under the t
 - **Claude Code** — the last assistant message from the local transcript.
 - **Codex** — the pending approval: `wants to run: <command>` or `wants to apply a patch`.
 
-In `attnbox ls`, the same preview appears as an indented `└` line.
+In `attnbox ls`, the same preview appears as an indented `└` line, waiting items carry their action link (session deep link, plus the PR as a secondary link) and a compact waiting age after the title — `(5m)`, `(3h)` — so the terminal view triages by the same signals as the web inbox.
 
 ## Handled ("done") state
 
