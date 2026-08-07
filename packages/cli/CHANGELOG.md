@@ -1,5 +1,12 @@
 # attnbox
 
+## 0.4.5
+
+### Patch Changes
+
+- 02fbf87: `attnbox ls` now shows how long each waiting item has been waiting (compact age like `(5m)` / `(3h)` after the title) — the triage-priority signal the web inbox already had.
+- 2060cb2: `attnbox doctor` now validates the GitHub token against the actual review-requested search endpoint instead of `/user` — GitHub App/installation tokens are valid for the collector's search but rejected by `/user`, which made doctor report a false "check token" warning.
+
 ## 0.4.4
 
 ### Patch Changes
