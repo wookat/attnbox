@@ -95,6 +95,20 @@
 
 结论（第三批）：仍无"本地+云端统一收件箱"竞争者；本批两项目继续印证需求存在且碎片化（tmux 端、Telegram 端各取一角）。ccmux/pulse-protocol/grove 自上批扫描以来零注意力面新动向（pulse-protocol 停更 8 天、grove 13 天）。
 
+## 四之五、2026-08 第四批扫描（2026-08-07 深夜，README 核对，未实测）
+
+赛道明显升温：GitHub 搜索 "attention + coding agent" 24 小时内新推送的直接相关项目就有 5+ 个。
+
+| 项目 | 形态 | 与我们的差异 |
+|---|---|---|
+| [kookr-ai/kookr](https://github.com/kookr-ai/kookr)（3 star，TS/Node≥22，带 CI/文档站/演示视频） | "smart attention router"——本批完成度最高 | hooks+转录+托管终端三通道监控 Claude/Codex 本地会话，"解释哪个最紧急并路由过去"；比我们多"紧急度排序/解释"层，但仅本地 CLI、无云端 agent，且倾向托管会话（非零侵入象限） |
+| [dkomlen/kelpie](https://github.com/dkomlen/kelpie)（2 star，npm 包） | read-only attention board | 哲学与我们最像（只读、永不代答/代批），甚至同用 npx 分发；但仅 Claude Code、仅本地、无 ack/回复/云端 |
+| [centauri-ai/coslash](https://github.com/centauri-ai/coslash)（0 star，Go+Node，macOS only，brew 分发） | "attention layer" | 亮点是会话上下文重建（目标/决策/文件/提交/下一步）+ 冷启动交接简报——超出我们的能力，值得记录；仅本地 Claude/Codex，无云端 |
+| [zane-byte-dev/atm](https://github.com/zane-byte-dev/atm)（0 star，Go，中文） | "AI 团队管理面板" | 注意力+成本（花了多少钱）视角；本地索引，无云端 |
+| [ContactEstablished/Chorus](https://github.com/ContactEstablished/Chorus)（0 star，桌面 app） | BYOK 命令中心 | "attention is the scarce resource" 同理念；由它启动/编排象限（worktree per agent + 注意力分钟数计费），不聚合已有会话，无云端 |
+
+结论（第四批）：**核心差异化（云端 agent 聚合 + 零侵入发现已有会话 + 本地/云统一视图）仍无任何对手**，但"attention layer/inbox/router"已从零散需求变成命名明确的赛道，单日多项目进场。值得评估的方向：kookr 的紧急度排序/解释、coslash 的交接简报（均暂记观察项，触发条件：dogfood 中 waiting 项多到需要排序时转 P2）。omnara（2.7k star）与 omnigent（8.2k star）持续活跃，但象限未变（自有编排/harness）。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
