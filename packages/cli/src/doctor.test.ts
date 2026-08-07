@@ -82,6 +82,20 @@ describe("runDoctor", () => {
     expect(down.find((c) => c.name === "github-pr")?.level).toBe("warn");
   });
 
+  it("probes the review-requested search endpoint, not /user (app tokens can't call /user)", async () => {
+    const home = tempHome();
+    const urls: string[] = [];
+    const fetchImpl = (async (url: string) => {
+      urls.push(String(url));
+      return { ok: true, status: 200, json: async () => ({}) };
+    }) as unknown as typeof fetch;
+    await runDoctor({ home, env: { GITHUB_TOKEN: "t" }, fetchImpl });
+    const probe = urls.find((u) => u.includes("api.github.com"));
+    expect(probe).toContain("search/issues");
+    expect(probe).toContain(encodeURIComponent("review-requested:@me"));
+    expect(probe).not.toContain("/user");
+  });
+
   it("reports the webhook channel", async () => {
     const home = tempHome();
     const off = await runDoctor({ home, env: {}, fetchImpl: okFetch() });
