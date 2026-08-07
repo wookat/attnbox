@@ -21,7 +21,7 @@ General rules:
 
 - Local collectors never write to agent directories and never spawn or wrap agent processes.
 - The only write attnbox performs is the explicit Devin reply action; there is no other outbound write anywhere.
-- A `working` item with no activity for 5 minutes is capped to `idle` (heuristic staleness guard).
+- A `working` item with no activity for 5 minutes is capped to `idle` (heuristic staleness guard, local collectors only). Cloud statuses are passed through as the vendor reports them — a Devin session can legitimately stay `working` for hours (e.g. an orchestrator supervising child sessions).
 - Cloud collectors fail soft: an unreachable API never breaks the rest of the inbox.
 - The Devin sessions list is crawled until the backlog is exhausted (hard safety cap 10,000 sessions); deeper pages refresh at most every 30 s, so changes on old sessions can lag up to 30 s.
 - The web UI receives full-state SSE snapshots, gzip-compressed when the browser accepts it (~186 KB/min per open tab at 1,000 sessions).
