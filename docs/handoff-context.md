@@ -1,6 +1,6 @@
 # Handoff context — attnbox
 
-按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-110）。
+按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-120）。
 
 ## 项目一句话
 
@@ -10,7 +10,7 @@
 
 - 仓库：https://github.com/wookat/attnbox （main 分支保护，PR + CI）
 - 官网：https://attnbox.zalize.com （Astro Starlight，`apps/site`，Cloudflare Pages，项目名 `attnbox`；文档 PR 合并后需 `pnpm build` + `wrangler pages deploy dist` 重建）
-- npm：`attnbox`（CLI+web）、`attnbox-core`、`attnbox-collectors`、`attnbox-daemon`；当前 0.4.5 / 0.2.1 / 0.2.6 / 0.3.2
+- npm：`attnbox`（CLI+web）、`attnbox-core`、`attnbox-collectors`、`attnbox-daemon`；当前 0.4.6 / 0.2.1 / 0.2.7 / 0.3.3（v0.4.6 Release 已建，round-111 detail 取全修复）
 - monorepo：pnpm + changesets；`packages/{core,collectors,daemon,cli}` + `apps/{web,site}`
 
 ## 日常循环（当前运作方式）
@@ -28,6 +28,8 @@
 ## 关键设计事实（容易踩的坑）
 
 - Devin 采集：全量分页爬取（100/页，深页 10 并发批，硬上限 10,000，30s 深页缓存）；云状态权威透传，5 分钟 stale-working 上限仅本地启发式适用。
+- Devin waiting 详情：一次 collect 取全（顺序批，每批 10 并发，`updated_at` 缓存）——round-111 修复，勿回退为每周期条数上限（一次性 `ls` 永不补齐）。
+- a11y 审计要覆盖交互态：round-117 的激活 tab 徽章、round-119 的内联代码底色都是默认态审计漏掉的（axe/Lighthouse 只测默认 tab/白底就会漏）。
 - webhook/浏览器通知：id 仅在观测到非 waiting 后才离开已通知集合（防采集器抖动风暴，rounds 71/81）。
 - `--host` 必须 token（`ATTNBOX_TOKEN`），API/SSE 全面 401 门禁（rounds 29/84 负例契约）。
 - doctor 的 GitHub 探活走 review-requested 搜索端点，不能用 `/user`（App token 会 403，round-94）。
@@ -44,5 +46,6 @@ SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 ag
 
 ## 进行中/下一步
 
-- 无未合并 PR 时按循环继续；竞品重点盯 kookr/kelpie/coslash（round-109 第四批，赛道单日多项目进场）与 ccmux/omnigent 动向。
-- Rounds 101–109 全部为无缺陷审计轮（webhook 恰好一次、a11y 0 违规、依赖 0 漏洞、本地采集器实弹、离线快照文档、perf 复测、分诊闭环、SSE 断线重连、竞品四批）——回归面全绿；对外可见性/宣发是当前最大非工程缺口（round-109 建议，待老板决策）。
+- 无未合并 PR 时按循环继续；竞品每轮必查 kookr（迭代速度极高，round-115 示警）+ kelpie/coslash/ccmux/omnigent 动向。ccmux 已用 pane 捕获修复 Escape 陈旧 waiting（我们零侵入约束下不可用，round-72 不修决策成立，LIMITS 已注明）。
+- changeset 现累积 1 个 attnbox patch（round-117 激活 tab 徽章对比度）；round-119 官网对比度修复不发包。
+- Rounds 111–119 概要：111 detail 取全 P1（发 v0.4.6）、112/113 修复三面验证、114 文档入档、115 竞品复扫、116 键盘链全通、117 徽章对比度 P1、118 数据面干净、119 官网 doctor 页对比度 P1。对外可见性/宣发仍是最大非工程缺口（待老板决策）。
