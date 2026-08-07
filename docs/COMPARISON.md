@@ -138,6 +138,22 @@
 
 观察：**"who is waiting on you" 已成为新项目 README 的标准句式**（cc-office/claude-hud 原文），赛道语言完全收敛到我们 round-1 的定位表述；但新进入者仍全部停留在"单 agent + 单平台 + 本地"，云端聚合 + 跨 agent 统一视图的差异化持续无对手。
 
+## 四之八、2026-08 第六批扫描（2026-08-07 深夜，ROUND-131）
+
+主要对手动向：
+
+- **kookr**：当日 10+ merge（PR 已到 #2178）：容量吞吐判定、FAA ack-path reaper、starvation-scout 自适应冷却、pty fd 泄漏修复、共享授权 grant 清理——全部是自有编排 fleet 的内部件；仍无云端聚合迹象。每轮必查继续。
+- **kelpie**：仓库已 404（round-127 发现，删库或转私有）——最接近我们只读哲学的进入者退出公开赛道。
+- **ccmux**：仅 TUI 对话框/提示行样式打磨，注意力面无动向。coslash 无实质更新。
+
+新进入者：
+
+| 项目 | 定位 | 与我们的差异 |
+|---|---|---|
+| [hasannaveed/agent-deck](https://github.com/hasannaveed/agent-deck)（"Agent Switchboard"，0 star，当日建，Electron+TUI+daemon） | 本地面板：Codex/Claude/OpenCode 会话"working/waiting for you/finished but unread"，点击跳转 tmux/WezTerm/kitty/Zellij/GNOME Terminal | 迄今与我们本地面重合度最高的新进入者（多 agent、SQLite+SSE、hooks+进程发现双通道、明确反对"整个历史变收件箱"）；但仅 Linux 本地、无云端 agent、无 ack/回复，含 Electron 常驻窗与终端跳转（超出我们范围的桌面人体工学，记观察项） |
+
+观察：新进入者已从"单 agent 单平台"演进到"多 agent 本地 + 终端跳转"，本地面竞争在加密；云端聚合 + 本地/云统一视图差异化仍无对手。agent-deck 的"点击跳转到终端会话"是值得记录的方向（我们 P2 台账已有本地行动面约束——零侵入下 URL 打不开终端，暂无对等能力）。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
