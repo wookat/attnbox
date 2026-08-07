@@ -1,7 +1,7 @@
 import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
 
-/** Cap on uncached detail lookups per collect cycle; the rest catch up on later cycles. */
-export const MAX_DETAIL_FETCHES_PER_CYCLE = 10;
+/** Uncached detail lookups run in sequential batches of this many parallel requests. */
+export const DETAIL_FETCH_BATCH = 10;
 
 const PAGE_SIZE = 100;
 /** Deep pages are crawled in parallel batches of this many round-trips. */
@@ -100,23 +100,27 @@ export class DevinCollector implements Collector {
     for (const id of [...this.detailCache.keys()]) {
       if (!waiting.some((w) => w.session.session_id === id)) this.detailCache.delete(id);
     }
-    let fetched = 0;
-    await Promise.all(
-      waiting.map(async ({ item, session }) => {
-        const key = session.session_id;
-        const updatedAt = session.updated_at ?? "";
-        const cached = this.detailCache.get(key);
-        if (cached && cached.updatedAt === updatedAt) {
-          if (cached.detail !== undefined) item.detail = cached.detail;
-          return;
-        }
-        if (fetched >= MAX_DETAIL_FETCHES_PER_CYCLE) return;
-        fetched++;
-        const detail = await this.fetchDetail(key);
-        this.detailCache.set(key, { updatedAt, detail });
-        if (detail !== undefined) item.detail = detail;
-      })
-    );
+    const uncached: { item: AttentionItem; session: DevinSession }[] = [];
+    for (const entry of waiting) {
+      const cached = this.detailCache.get(entry.session.session_id);
+      if (cached && cached.updatedAt === (entry.session.updated_at ?? "")) {
+        if (cached.detail !== undefined) entry.item.detail = cached.detail;
+      } else {
+        uncached.push(entry);
+      }
+    }
+    // fetch every missing detail (one-shot `ls` has no later cycle to catch up in),
+    // but keep the request burst bounded by batching
+    for (let i = 0; i < uncached.length; i += DETAIL_FETCH_BATCH) {
+      await Promise.all(
+        uncached.slice(i, i + DETAIL_FETCH_BATCH).map(async ({ item, session }) => {
+          const key = session.session_id;
+          const detail = await this.fetchDetail(key);
+          this.detailCache.set(key, { updatedAt: session.updated_at ?? "", detail });
+          if (detail !== undefined) item.detail = detail;
+        })
+      );
+    }
   }
 
   private async fetchDetail(sessionId: string): Promise<string | undefined> {
