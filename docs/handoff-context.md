@@ -1,6 +1,6 @@
 # Handoff context — attnbox
 
-按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-100）。
+按 Company OS 交接上下文制度维护；换会话/换负责人时先读本文档。最后更新：2026-08-07（ROUND-110）。
 
 ## 项目一句话
 
@@ -35,7 +35,7 @@
 
 ## 已知 P2 台账（勿擅自实现，触发条件见各 GAP）
 
-SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 agent 远程审批（零侵入约束）、presence-aware 通知（round-98 观察项）、Devin project 归组覆盖率 41.6%（受供应商字段限制）。
+SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 agent 远程审批（零侵入约束）、presence-aware 通知（round-98 观察项）、Devin project 归组覆盖率 41.6%（受供应商字段限制）、waiting 紧急度排序/解释与交接简报（round-109 观察项，触发：dogfood waiting 多到时长排序不够用）、收件箱性能升级触发（round-106：可复现 perf<70 或 TBT>600ms 时转正 payload 瘦身/虚拟化）。
 
 ## 资源与凭证
 
@@ -44,4 +44,5 @@ SSE delta 事件、payload 去重/归一、展开 3k 列表虚拟化、本地 ag
 
 ## 进行中/下一步
 
-- 无未合并 PR 时按循环继续；竞品重点盯 pulse-protocol/grove/ccmux 与 omnigent 审批栈动向。
+- 无未合并 PR 时按循环继续；竞品重点盯 kookr/kelpie/coslash（round-109 第四批，赛道单日多项目进场）与 ccmux/omnigent 动向。
+- Rounds 101–109 全部为无缺陷审计轮（webhook 恰好一次、a11y 0 违规、依赖 0 漏洞、本地采集器实弹、离线快照文档、perf 复测、分诊闭环、SSE 断线重连、竞品四批）——回归面全绿；对外可见性/宣发是当前最大非工程缺口（round-109 建议，待老板决策）。
