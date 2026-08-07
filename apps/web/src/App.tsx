@@ -139,12 +139,22 @@ export default function App() {
   const seenWaiting = useRef<Set<string> | null>(null);
 
   useEffect(() => {
-    const waitingIds = new Set(data.items.filter((i) => i.status === "waiting").map((i) => i.id));
-    const prev = seenWaiting.current;
-    seenWaiting.current = waitingIds;
-    if (!prev || !notify || Notification.permission !== "granted") return;
+    const seen = seenWaiting.current;
+    if (!seen) {
+      // the first known state (cached or live) is the baseline — items already waiting don't notify
+      if (loaded) seenWaiting.current = new Set(data.items.filter((i) => i.status === "waiting").map((i) => i.id));
+      return;
+    }
     for (const item of data.items) {
-      if (item.status !== "waiting" || prev.has(item.id) || isAcked(item)) continue;
+      // an id leaves the seen set only when observed non-waiting; a collector outage
+      // (item briefly absent) must not re-notify the same waiting item on recovery
+      if (item.status !== "waiting") {
+        seen.delete(item.id);
+        continue;
+      }
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      if (!notify || Notification.permission !== "granted" || isAcked(item)) continue;
       const label = item.attention ? ATTENTION_LABEL[item.attention] : "needs you";
       const body = item.detail ? `${item.title}\n${item.detail}` : item.title;
       const title = `${item.agent}: ${label}`;
@@ -167,7 +177,7 @@ export default function App() {
         })
         .catch(fallback);
     }
-  }, [data.items, notify]);
+  }, [data.items, notify, loaded]);
 
   async function toggleNotify(): Promise<void> {
     if (!notificationsSupported()) return;
