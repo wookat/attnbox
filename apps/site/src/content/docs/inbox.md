@@ -90,4 +90,4 @@ Then open `http://<your-machine>:4820/?token=<that token>` on the phone once —
 
 The token protects the API, not the transport (plain HTTP): prefer a private tailnet/VPN (e.g. Tailscale) over exposing a LAN port.
 
-If the daemon is unreachable when you (re)open the inbox — laptop asleep, tunnel down — the PWA renders the last known snapshot from local storage instead of a blank screen, with the header pill switched from `live` to `offline` so stale data never masquerades as fresh.
+If the daemon is unreachable when you (re)open the inbox — laptop asleep, tunnel down — the PWA renders the last known snapshot from local storage instead of a blank screen, with the header pill switched from `live` to `offline` so stale data never masquerades as fresh. The cached snapshot covers active sessions (waiting/working/idle); done sessions are loaded on demand from the daemon, so the Done tab needs it reachable.
