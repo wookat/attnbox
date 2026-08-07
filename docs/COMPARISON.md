@@ -109,6 +109,17 @@
 
 结论（第四批）：**核心差异化（云端 agent 聚合 + 零侵入发现已有会话 + 本地/云统一视图）仍无任何对手**，但"attention layer/inbox/router"已从零散需求变成命名明确的赛道，单日多项目进场。值得评估的方向：kookr 的紧急度排序/解释、coslash 的交接简报（均暂记观察项，触发条件：dogfood 中 waiting 项多到需要排序时转 P2）。omnara（2.7k star）与 omnigent（8.2k star）持续活跃，但象限未变（自有编排/harness）。
 
+## 四之六、2026-08 第四批复扫（2026-08-07，commit 流核对）
+
+升温后缩短监测间隔的首次复扫（第四批入档次日）：
+
+- **kookr**：单日 5+ merge（PR 编号已到 #2172——迭代速度极高），方向为性能隔离/挂起任务收割（reaper + 用户否决）/共享授权治理；仍无云端 agent 迹象。**本批最需持续监测的对手**。
+- **kelpie**：日更中；README 撤掉了 "read-only" 定语（新增 restart/stop 等控制面），并修了"board 藏在窗口后空白"“隔夜页面陈旧”等打磨项——从只读板向常驻 app 演化。
+- **ccmux（#126）**：**修复了 Escape 陈旧 waiting（其 #117，即我们 round-72 决定不修的同类问题）**——手段是 tmux `capture-pane` 的"正面画面证据"（画面证明权限提示已消失才撤 waiting，非超时）。该信号依赖 pane 捕获，我们的零侵入只读转录约束下不可用，round-72 的不修决策仍成立，但 LIMITS 措辞已同步（ccmux 已用我们没有的信号修复）。
+- coslash/atm/Chorus/pulse-protocol：无注意力面新动向。
+
+结论：定位无变化（云端聚合仍无对手）；kookr 迭代速度值得每轮竞品扫描必查。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
