@@ -82,6 +82,31 @@ describe("DevinCollector", () => {
     expect(items.find((i) => i.id === "devin:devin-100")?.status).toBe("waiting");
   });
 
+  it("crawls past 1,000 sessions until the backlog is exhausted", async () => {
+    const offsets: number[] = [];
+    const paged = (async (url: RequestInfo | URL) => {
+      const offset = Number(new URL(String(url)).searchParams.get("offset"));
+      offsets.push(offset);
+      const count = offset < 1400 ? 100 : 5;
+      return {
+        ok: true,
+        json: async () => ({
+          sessions: Array.from({ length: count }, (_, i) => ({
+            session_id: `devin-${offset + i}`,
+            status_enum: offset === 1400 && i === 0 ? "blocked" : "finished"
+          }))
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", paged);
+    const items = await collector.collect();
+    expect(items).toHaveLength(1405);
+    // a session blocked deep in the backlog is still waiting on the user
+    expect(items.find((i) => i.id === "devin:devin-1400")?.status).toBe("waiting");
+    // the crawl stops at the short page instead of running to the hard cap
+    expect(Math.max(...offsets)).toBeLessThan(2100);
+  });
+
   it("reuses the deep-page crawl within the refresh window", async () => {
     const listCalls: string[] = [];
     const paged = (async (url: RequestInfo | URL) => {

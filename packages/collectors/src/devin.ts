@@ -4,8 +4,10 @@ import type { AttentionItem, Collector, SessionStatus } from "attnbox-core";
 export const MAX_DETAIL_FETCHES_PER_CYCLE = 10;
 
 const PAGE_SIZE = 100;
-/** Safety cap on session pagination (≤ 1,000 sessions), matching tested UI scale. */
-export const MAX_SESSION_PAGES = 10;
+/** Deep pages are crawled in parallel batches of this many round-trips. */
+const BATCH_PAGES = 10;
+/** Hard safety cap on session pagination (≤ 10,000 sessions). */
+export const MAX_SESSION_PAGES = 100;
 /** Deep pages change rarely; re-crawl them at most this often to keep API traffic bounded. */
 export const DEEP_REFRESH_MS = 30_000;
 
@@ -40,16 +42,24 @@ export class DevinCollector implements Collector {
       return this.finish(dedupe([...first, ...this.deepCache.sessions]));
     }
     // a full first page means the org has a deep backlog: crawl the remaining pages in
-    // one parallel round-trip and keep the contiguous prefix up to the first short or
-    // failed page (deep crawls only happen for 100+ session orgs, and at most every 30 s)
-    const batch = await Promise.all(
-      Array.from({ length: MAX_SESSION_PAGES - 1 }, (_, i) => this.fetchPage((i + 1) * PAGE_SIZE))
-    );
+    // parallel batches until the first short or failed page — a blocked session anywhere
+    // in the backlog is still waiting on the user, so the crawl must reach the end
+    // (deep crawls only happen for 100+ session orgs, and at most every 30 s)
     const deep: DevinSession[] = [];
-    for (const pageSessions of batch) {
-      if (pageSessions === undefined) break;
-      deep.push(...pageSessions);
-      if (pageSessions.length < PAGE_SIZE) break;
+    let page = 1;
+    let exhausted = false;
+    while (!exhausted && page < MAX_SESSION_PAGES) {
+      const count = Math.min(BATCH_PAGES, MAX_SESSION_PAGES - page);
+      const batch = await Promise.all(
+        Array.from({ length: count }, (_, i) => this.fetchPage((page + i) * PAGE_SIZE))
+      );
+      for (const pageSessions of batch) {
+        if (pageSessions === undefined || pageSessions.length < PAGE_SIZE) exhausted = true;
+        if (pageSessions === undefined) break;
+        deep.push(...pageSessions);
+        if (pageSessions.length < PAGE_SIZE) break;
+      }
+      page += count;
     }
     this.deepCache = { sessions: deep, fetchedAt: Date.now() };
     return this.finish(dedupe([...first, ...deep]));
