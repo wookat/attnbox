@@ -179,6 +179,19 @@
 
 观察：本地对手动向平静；生态信号是重点——25.5k★ 的 herdr 生态出现"waiting on you"官方式插件，注意力过滤正成为 agent runtime 的标配维度。我们的差异化（跨 runtime/原生会话/云端统一聚合、零侵入）仍无对手，但"每个 runtime 自带注意力面"会蚕食单 runtime 用户的聚合需求，继续每轮盯防。无 P0/P1。
 
+## 四之十一、2026-08 第九批扫描（2026-08-08，ROUND-153）
+
+主要对手动向（round-144 后恢复活跃）：
+
+- **kookr**（kookr-ai/kookr，★3）：持续高频（#2178–#2181，单日 4+ 合并）：容量/吞吐 verdict、ack-path reaper、a11y 细节（Escape 关闭+焦点陷阱）——工程质量高但仍无云端聚合迹象。
+- **ccmux**（epilande/ccmux，★117）：TUI 样式统一、opencode 适配修复、**relay skill 从 dispatch 拆出**（#128）——"注意力+行动/移交"方向继续推进（round-138 示警持续成立）。
+- **coslash**：小步提交（amend 检测边界修复），方向未变。
+- **agent-deck**（asheone00/agent-deck）：仓库已 404（继 kelpie 后第二个退出公开赛道的盯防对象）；同名 AgentDeck 项目多为"启动器/仪表盘"（puritysb/AgentDeck ★183 实体控制器、vfarcic/dot-agent-deck ★97 终端仪表盘），非同赛道。
+- **kelpie 回归**：misty-step/kelpie 复活（★1，当日活跃）——定位改为"herdr 终端工作区 agent 舰队的 phone-first 分诊台"，绑定 herdr 生态；与 round-144 的 herdr-island 同向，herdr 生态注意力面持续加厚。
+- herdr-island 本体无新推送。
+
+观察：赛道两极化——依附头部 runtime 生态（herdr 系）或单 runtime 深耕（kookr/ccmux），**跨 runtime + 原生会话 + 云端统一聚合的零侵入定位仍无对手**。ccmux relay/移交与 kelpie phone-first 都指向 round-109 交接简报观察项方向，维持 P2 不触发。无 P0/P1。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
