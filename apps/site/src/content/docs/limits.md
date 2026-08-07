@@ -23,7 +23,7 @@ General rules:
 - The only write attnbox performs is the explicit Devin reply action; there is no other outbound write anywhere.
 - A `working` item with no activity for 5 minutes is capped to `idle` (heuristic staleness guard, local collectors only). Cloud statuses are passed through as the vendor reports them — a Devin session can legitimately stay `working` for hours (e.g. an orchestrator supervising child sessions).
 - Cloud collectors fail soft: an unreachable API never breaks the rest of the inbox.
-- The Devin sessions list is crawled until the backlog is exhausted (hard safety cap 10,000 sessions); deeper pages refresh at most every 30 s, so changes on old sessions can lag up to 30 s.
+- The Devin sessions list is crawled until the backlog is exhausted (hard safety cap 10,000 sessions); deeper pages refresh at most every 30 s, so changes on old sessions can lag up to 30 s. Waiting-item question previews are fetched for every blocked session in one pass (bounded to 10 parallel requests, cached by update time), so `attnbox ls` and the inbox always show what each waiting session is asking, regardless of how many are blocked.
 - The web UI receives full-state SSE snapshots, gzip-compressed when the browser accepts it (~186 KB/min per open tab at 1,000 sessions).
 - Notifications fire only while the inbox is open somewhere (a tab or the installed PWA). There is deliberately **no push server** — Web Push would relay your agent activity through a third-party push service, which contradicts local-first. If nothing has the inbox open, nothing notifies; the items are still waiting when you return.
 
