@@ -165,6 +165,20 @@
 
 观察：两个本地对手（ccmux/coslash）都在向"注意力面之上加行动/移交"演进，验证了我们 round-109 记的 P2 观察项（waiting 交接简报）方向；但全部仍无云端聚合。核心差异化不变，无 P0/P1。
 
+## 四之十、2026-08 第八批扫描（2026-08-08 凌晨，ROUND-144）
+
+主要对手动向：kookr/agent-deck/ccmux/coslash 自 round-138 以来均无新推送（各自当日最后一推即 round-138 已核对的内容）；kelpie 仍 404。
+
+新进入者：
+
+| 项目 | 定位 | 与我们的差异 |
+|---|---|---|
+| [kay-ws/herdr-island](https://github.com/kay-ws/herdr-island)（Shell 插件） | herdr（25.5k★ 元 runtime）的面板过滤器："找出在等你的 agents，显示每个停下的原因" | 依附 herdr 生态：只覆盖 herdr 启动的会话，无原生/云端聚合。信号意义在于**头部 runtime 生态开始以"waiting on you"为一等过滤维度**（与 omnigent 内置 Inbox 同向） |
+| [RajdeepKushwaha5/nMn](https://github.com/RajdeepKushwaha5/nMn)（PowerShell） | VS Code 内自动确认 Claude Code 权限提示，"长跑不因等你而停" | 反方向方案：消灭 waiting 而非呈现 waiting（自动批准，安全面存疑）；单 agent 单编辑器 |
+| [oleg-vasilyev/claude-notify](https://github.com/oleg-vasilyev/claude-notify)（TS，与 round-98 同名项目不同作者） | Claude Code waiting 时发 Telegram，且"只在你真的离开后"才推 | presence-aware 通知的又一实现（round-98 观察项方向持续被验证）；单 agent、推送通道绑定 Telegram |
+
+观察：本地对手动向平静；生态信号是重点——25.5k★ 的 herdr 生态出现"waiting on you"官方式插件，注意力过滤正成为 agent runtime 的标配维度。我们的差异化（跨 runtime/原生会话/云端统一聚合、零侵入）仍无对手，但"每个 runtime 自带注意力面"会蚕食单 runtime 用户的聚合需求，继续每轮盯防。无 P0/P1。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
