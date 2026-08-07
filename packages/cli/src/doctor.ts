@@ -104,9 +104,12 @@ export async function runDoctor(opts: DoctorEnv = {}): Promise<DoctorCheck[]> {
     let level: CheckLevel = "ok";
     let detail = "token valid — review-requested fallback active";
     try {
-      const res = await fetchImpl("https://api.github.com/user", {
-        headers: { Authorization: `Bearer ${ghToken}`, Accept: "application/vnd.github+json" }
-      });
+      // probe the exact endpoint the collector uses: /user rejects app/installation
+      // tokens that are perfectly valid for the review-requested search
+      const res = await fetchImpl(
+        "https://api.github.com/search/issues?q=" + encodeURIComponent("is:pr is:open review-requested:@me") + "&per_page=1",
+        { headers: { Authorization: `Bearer ${ghToken}`, Accept: "application/vnd.github+json" } }
+      );
       if (!res.ok) {
         level = "warn";
         detail = `API returned HTTP ${res.status} — check ATTNBOX_GITHUB_TOKEN/GITHUB_TOKEN`;
