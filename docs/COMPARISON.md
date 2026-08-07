@@ -192,6 +192,10 @@
 
 观察：赛道两极化——依附头部 runtime 生态（herdr 系）或单 runtime 深耕（kookr/ccmux），**跨 runtime + 原生会话 + 云端统一聚合的零侵入定位仍无对手**。ccmux relay/移交与 kelpie phone-first 都指向 round-109 交接简报观察项方向，维持 P2 不触发。无 P0/P1。
 
+### 当日跟进（ROUND-159）
+
+kookr 增补 operator 可调 `quotaHeadroomThreshold`（节奏不变，仍无云端）；kelpie 桌面客户端高频冲刺（15 分钟 5 提交：provider 标识/会话元数据/转录打磨），仍绑定 herdr；ccmux/coslash/herdr-island 无新推送；三日窗口新进入者扫描为空——数批以来首个安静窗口。差异化不变，P2 无触发。详见 `docs/gap/GAP-ROUND-159.md`。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
