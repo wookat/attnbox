@@ -1,5 +1,12 @@
 # attnbox
 
+## 0.4.4
+
+### Patch Changes
+
+- 235e5da: Web inbox: SSE snapshots are no longer re-processed when byte-identical, and the offline-snapshot localStorage write happens on idle instead of synchronously on every message — at thousands of sessions the ~1 MB write was blocking the main thread (mobile Lighthouse perf 68 → 84).
+- 1037c07: Web inbox: browser notifications no longer re-fire for every waiting item after a collector blip — an item only leaves the notified set when observed non-waiting (same guard the daemon webhook got in 0.3.1), and pre-existing waiting items never notify on startup.
+
 ## 0.4.3
 
 ### Patch Changes
