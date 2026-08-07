@@ -86,6 +86,15 @@
 
 结论（2026-08-07）：核心差异化（云端 agent 聚合 + 零侵入发现）仍无对手，但 **"unified attention inbox" 赛道开始有直接同文案的进入者**。pulse-protocol 的 away-mode 远程审批与注意力时长分析是值得评估的功能方向（我们对 Devin 已有 act-in-place 回复；本地 agent 的远程审批受零侵入约束，需 hook 双向通道才可行，暂记 P2）。两项目当前 star≈0/1、单人项目，威胁等级低，下轮继续监测。
 
+## 四之四、2026-08 第三批扫描（2026-08-07 晚，README 核对，未实测）
+
+| 项目 | 形态 | 与我们的差异 |
+|---|---|---|
+| [austinwilcox/tmux-agentwatch](https://github.com/austinwilcox/tmux-agentwatch)（2026-08-01 建，0 star，Shell） | tmux 插件 | hook 驱动 waiting 检测 + 桌面通知 + "跳到等最久的 pane"；作者自述动机是"不想为 herdr 之类放弃 tmux"——继续验证注意力信号需求，但绑 tmux、仅本地、无云端 agent |
+| [oleg-vasilyev/claude-notify](https://github.com/oleg-vasilyev/claude-notify)（2026-08-06 建，0 star，TS/Windows） | Telegram 通知器 | 仅 Claude Code；亮点是"在座与离席"判定——人还在键盘前不推送，离开后才入队推送，并附限额窗口状态。此"presence-aware 通知"思路值得记录：我们的 webhook 通道无 presence 概念，收件箱开着也会 POST（用户端点自行去噪），暂记观察项而非 P2（零侵入下浏览器侧已有标签页可见性可利用，触发条件：用户反馈通知过噪） |
+
+结论（第三批）：仍无"本地+云端统一收件箱"竞争者；本批两项目继续印证需求存在且碎片化（tmux 端、Telegram 端各取一角）。ccmux/pulse-protocol/grove 自上批扫描以来零注意力面新动向（pulse-protocol 停更 8 天、grove 13 天）。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
