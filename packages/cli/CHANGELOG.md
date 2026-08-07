@@ -1,5 +1,11 @@
 # attnbox
 
+## 0.4.7
+
+### Patch Changes
+
+- 0905a62: Fix WCAG AA contrast of the waiting-count badge on the active "Needs you" filter tab (1.71:1 → passing in both themes).
+
 ## 0.4.6
 
 ### Patch Changes
