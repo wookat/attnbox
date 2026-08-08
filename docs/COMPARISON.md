@@ -212,6 +212,10 @@ kookr 高频持续（pipelineStarvation 计数入 status、协作 peer URL 拒�
 
 round-186 后的短窗复核（数小时窗口）：八盯防（含三个新进入者）基本平静——仅 ccmux 收紧 README 文案、agentfleet 落第一次真实云机端到端 provision 修复（确认其已从 demo 走向实用，多机本地面对手保持观察优先级）；kookr/coslash/kelpie/claude-dispatcher/waiting-on-me/streamdeck-agents 无新推送；新进入者扫描无新增。差异化不变，P2 无触发。详见 `docs/gap/GAP-ROUND-197.md`。
 
+### 第十四批扫描（ROUND-207）
+
+八盯防中唯一动向是 ccmux 发布 v1.3.0：session handoff 正式化（`ccmux last` 读任意 agent 最后回应 + `ccmux handoff` 移交到另一会话、busy 排队/waiting 拒收、TUI 行菜单移交）、dispatch 技能新增 `relay` 姊妹技能（agent 互相读取/移交回应）、git worktree 工作流面板——本地多会话"注意力+移交"路线继续深化（round-109/138 观察项方向再验证），但仍单机 tmux、无云端、capture-pane 依赖不变，零侵入约束下与我们不冲突。其余七家（kookr/coslash/kelpie/claude-dispatcher/agentfleet/waiting-on-me/streamdeck-agents）本窗口无新推送——kookr 自 round-186 高频后首次连续两窗口静默。新进入者扫描无新增（agentfleet 与我们自身外无新条目）。跨 runtime + 本地零侵入发现 + vendor-authoritative 云端聚合 + 常驻移动端收件箱仍无对手，P2 无触发。详见 `docs/gap/GAP-ROUND-207.md`。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
