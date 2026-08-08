@@ -204,6 +204,10 @@ kookr 仍极高频（单日 15+ 提交：Sweep 确认弹窗焦点陷阱、plugin
 
 kookr 高频持续（pipelineStarvation 计数入 status、协作 peer URL 拒绝云元数据/link-local——安全面动作，仍无云端聚合）；ccmux 自 relay 拆分后无新推送；coslash 无新推送；kelpie 发布 VISION.md——定位原话 "the operator console for a fleet of coding agents"、"the operator's scarce resource is attention, not terminal windows"（与我们 round-1 注意力定位语言完全同源），并明确单人操作者、herdr/omp 生态内、非托管服务。新进入者一个入档：Innovology/claude-dispatcher（9★，"terminal cockpit for a factory of Claude Code sessions"，tmux+多 repo 分诊 lens，仅 Claude、仅本地、由它 dispatch 的会话）。跨 runtime+原生会话+云端零侵入聚合仍无对手，P2 无触发。详见 `docs/gap/GAP-ROUND-176.md`。
 
+### 第十三批跟进（ROUND-186）
+
+盯防五家全活跃：kookr 高频不减（quotaHeadroomThreshold、FAA ack-path reaper、node-pty FD 泄漏修复，仍无云端）；ccmux relay 技能触发词放宽 + opencode 浮点秒时间戳修复；coslash 转向 git commit 监控细化（amend 检测、heredoc 处理）；kelpie 桌面端持续冲刺 + 键盘导航（仍绑 herdr）；claude-dispatcher 发力 Windows 支持 + cockpit 默认化（仍 Claude-only）。新进入者三个入档：beknazar/agentfleet（远程多机 fleet 控制面，每机本地算状态写 JSON、laptop 聚合按"blocked on you"排序——多机本地面最接近者，无云端 agent API）；dkomlen/waiting-on-me（Claude 技能，一条命令并发扫 PR/review/Linear/Slack/后台任务/idle 会话/记忆七源——跨源注意力聚合理念同源，但 pull 式一次性 glance 而非常驻收件箱）；chron/streamdeck-agents（Stream Deck 硬件外设化 waiting 提醒，Claude-only 单机）。赛道验证信号增强：三个新进入者全部使用 "waiting/blocked on you" 语言。跨 runtime+云端零侵入聚合+常驻移动端收件箱仍无对手，P2 无触发。详见 `docs/gap/GAP-ROUND-186.md`。
+
 ## 五、实测记录（2026-08-04，Ubuntu 22.04 / Node 22 / Go 1.25 / Bun 1.3.14）
 
 - **ccmux**：`bun install`（319 包）成功；`bun run src/index.ts status` 正常输出配置与守护进程状态；daemon 可启动。源码结构：`src/daemon/adapters/{claude,codex,cursor,copilot,opencode,...}`，claude 走 `~/.claude/projects/*.jsonl` 日志 + hooks（Notification/Stop）双通道，codex 走 `~/.codex/sessions/**/rollout-*.jsonl` 解析。
