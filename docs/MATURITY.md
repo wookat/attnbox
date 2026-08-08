@@ -2,7 +2,7 @@
 
 Modeled on agentgate's docs/MATURITY.md. Updated per milestone.
 
-| Dimension | Status (round 217 / v0.4.8 released) | Evidence |
+| Dimension | Status (round 229 / v0.4.8 released) | Evidence |
 |---|---|---|
 | Tests | ✅ 98 unit tests across core/collectors/daemon/cli | `pnpm test` |
 | Coverage gate | ✅ v8 coverage thresholds (lines/functions/statements 80, branches 70) enforced in CI | `vitest.config.ts` |
@@ -13,8 +13,8 @@ Modeled on agentgate's docs/MATURITY.md. Updated per milestone.
 | Governance | ✅ CONTRIBUTING.md + CODE_OF_CONDUCT.md (Contributor Covenant 2.1) + MIT LICENSE | `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md` |
 | Public website | ✅ Astro Starlight site at attnbox.zalize.com — quickstart, inbox, hooks, doctor, limits pages + llms.txt; Lighthouse perf/a11y/bp/seo 100/100/100/100 | `apps/site`, `docs/gap/GAP-ROUND-95.md` |
 | Honest capability docs | ✅ per-source confidence + operational boundaries kept current every round | `docs/LIMITS.md` |
-| Mobile-first UI | ✅ responsive inbox, PWA install, offline last-known snapshot, actionable browser notifications, WCAG AA both themes (axe 0 violations across 10 interactive states, re-audited rounds 147/162/178/196/206), inbox Lighthouse a11y 100 | `apps/web`, `docs/gap/GAP-ROUND-147.md` |
-| Performance at scale | ✅ live ~3,200 sessions: full Devin backlog crawl (cap 10,000), slim SSE (done sessions lazily loaded) — mobile Lighthouse perf 94 at ~3,214 sessions (round-201; round-214 @3,246 measured median 85 with a paint-side drift on file as an ungraded observation, TBT still ≤160 ms), SSE gzip, daemon RSS flat ~130 MB (15-min soaks @3,226/3,241, rounds 203/210) | `docs/gap/GAP-ROUND-214.md`, `docs/gap/GAP-ROUND-210.md` |
-| Real-world validation | ✅ continuous dogfood against a live 3,200-session org: waiting/reply/ack/webhook paths end-to-end probed (controlled Devin probes rounds 93/137), hooks installer negative-tested (rounds 99/132/164/181/193/208), notification/webhook storm guards live-fire proven on real transitions (rounds 157/163/182/187/202 — real transitions each notified exactly once, stock never re-notified), all three local collectors live-fire verified (rounds 161/177/188/199/212), offline snapshot + SSE reconnect re-proven on the slim build (rounds 171/195/209) | `docs/gap/GAP-ROUND-157.md`, `docs/gap/GAP-ROUND-161.md` |
+| Mobile-first UI | ✅ responsive inbox, PWA install, offline last-known snapshot, actionable browser notifications, WCAG AA both themes (axe 0 violations across 10 interactive states, re-audited rounds 147/162/178/196/206/219), inbox Lighthouse a11y 100 | `apps/web`, `docs/gap/GAP-ROUND-147.md` |
+| Performance at scale | ✅ live ~3,200 sessions: full Devin backlog crawl (cap 10,000), slim SSE (done sessions lazily loaded) — mobile Lighthouse perf median 94 at 3,272 sessions (round-227; the round-214 median-85 paint drift did not reproduce over five runs and is closed as transient host load), SSE gzip, daemon RSS flat 120–139 MB (15-min soaks @3,226/3,241/3,263, rounds 203/210/222) | `docs/gap/GAP-ROUND-227.md`, `docs/gap/GAP-ROUND-222.md` |
+| Real-world validation | ✅ continuous dogfood against a live 3,200-session org: waiting/reply/ack/webhook paths end-to-end probed (controlled Devin probes rounds 93/137), hooks installer negative-tested (rounds 99/132/164/181/193/208), notification/webhook storm guards live-fire proven on real transitions (rounds 157/163/182/187/202/218/221 — real transitions each notified exactly once with ✓ Done actions, stock never re-notified), all three local collectors live-fire verified (rounds 161/177/188/199/212/225), offline snapshot + SSE reconnect re-proven on the slim build (rounds 171/195/209) | `docs/gap/GAP-ROUND-157.md`, `docs/gap/GAP-ROUND-161.md` |
 | Extension points | ✅ `ATTNBOX_WEBHOOK_URL` waiting webhook (ntfy/Slack relays, documented recipe) + token-gated HTTP API | `docs/gap/GAP-ROUND-69.md`, `docs/gap/GAP-ROUND-73.md` |
 | Competitive posture | ✅ tri-weekly competitor scans on file; local+cloud unified inbox + zero-intrusion discovery remains uncontested | `docs/COMPARISON.md` |
