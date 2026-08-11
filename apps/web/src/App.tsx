@@ -893,7 +893,7 @@ function ItemRow({
       className={`flex items-start gap-3 rounded-xl border p-3 transition-colors sm:p-4 ${
         highlight ? "border-amber-300 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/20" : "border-zinc-200 dark:border-zinc-800 bg-zinc-100/40 dark:bg-zinc-900/40"
       } ${item.url ? "hover:border-zinc-400 dark:hover:border-zinc-600 active:bg-zinc-100 dark:active:bg-zinc-900" : ""} ${selected ? "ring-2 ring-zinc-500/70 dark:ring-zinc-400/70" : ""} ${
-        dimmed ? "opacity-50" : ""
+        dimmed ? "grayscale" : ""
       }`}
     >
       <span className={`mt-1.5 size-2 shrink-0 rounded-full ${style.dot}`} />
