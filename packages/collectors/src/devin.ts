@@ -48,6 +48,7 @@ export class DevinCollector implements Collector {
     const deep: DevinSession[] = [];
     let page = 1;
     let exhausted = false;
+    let failed = false;
     while (!exhausted && page < MAX_SESSION_PAGES) {
       const count = Math.min(BATCH_PAGES, MAX_SESSION_PAGES - page);
       const batch = await Promise.all(
@@ -55,13 +56,22 @@ export class DevinCollector implements Collector {
       );
       for (const pageSessions of batch) {
         if (pageSessions === undefined || pageSessions.length < PAGE_SIZE) exhausted = true;
-        if (pageSessions === undefined) break;
+        if (pageSessions === undefined) {
+          failed = true;
+          break;
+        }
         deep.push(...pageSessions);
         if (pageSessions.length < PAGE_SIZE) break;
       }
       page += count;
     }
-    this.deepCache = { sessions: deep, fetchedAt: Date.now() };
+    if (failed && this.deepCache) {
+      // a failed page truncates the backlog for this pass; the deep pages change
+      // rarely, so the last complete crawl is a better answer than a partial one —
+      // keep it (and its timestamp) so the next cycle retries the crawl
+      return this.finish(dedupe([...first, ...deep, ...this.deepCache.sessions]));
+    }
+    if (!failed) this.deepCache = { sessions: deep, fetchedAt: Date.now() };
     return this.finish(dedupe([...first, ...deep]));
   }
 

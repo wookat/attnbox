@@ -149,6 +149,39 @@ describe("DevinCollector", () => {
     expect(items).toHaveLength(100);
   });
 
+  it("falls back to the last complete deep crawl when a deep page fails", async () => {
+    let failDeep = false;
+    const impl = (async (url: RequestInfo | URL) => {
+      const offset = Number(new URL(String(url)).searchParams.get("offset"));
+      if (offset > 0 && failDeep) throw new Error("network");
+      const count = offset === 0 ? 100 : offset === 100 ? 50 : 0;
+      return {
+        ok: true,
+        json: async () => ({
+          sessions: Array.from({ length: count }, (_, i) => ({
+            session_id: `devin-${offset + i}`,
+            status_enum: "finished"
+          }))
+        })
+      } as Response;
+    }) as typeof fetch;
+    const collector = new DevinCollector("key", "https://api.devin.ai/v1", impl);
+    expect(await collector.collect()).toHaveLength(150);
+
+    const realNow = Date.now;
+    Date.now = () => realNow() + 60_000; // step past the deep refresh window
+    try {
+      failDeep = true;
+      // the failed crawl must not truncate the backlog nor overwrite the cache
+      expect(await collector.collect()).toHaveLength(150);
+      failDeep = false;
+      // the next cycle retries the crawl immediately (stale timestamp was kept)
+      expect(await collector.collect()).toHaveLength(150);
+    } finally {
+      Date.now = realNow;
+    }
+  });
+
   it("attaches what the agent is asking to waiting items, cached by updated_at", async () => {
     const calls: string[] = [];
     const routed = (async (url: RequestInfo | URL) => {
