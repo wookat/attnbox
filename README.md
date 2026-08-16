@@ -1,6 +1,8 @@
 # attnbox
 
-**Unified attention inbox for your AI coding agents.** Whether an agent runs in your terminal (Claude Code, Codex CLI) or in the cloud (Devin, and more coming), attnbox shows one inbox of *who is waiting on you and what for* — approve, answer, review — on desktop and phone.
+**One inbox for everything your AI coding agents are waiting on you for — never leave an agent blocked again.**
+
+For developers running several AI coding agents at once: whether an agent runs in your terminal (Claude Code, Codex CLI) or in the cloud (Devin, and more coming), attnbox shows one inbox of *who is waiting on you and what for* — approve, answer, review — on desktop and phone.
 
 Website & docs: **https://attnbox.zalize.com**
 
